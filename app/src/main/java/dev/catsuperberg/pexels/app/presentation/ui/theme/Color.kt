@@ -1,4 +1,4 @@
-package dev.catsuperberg.pexels.app.presentation.theme.ui
+package dev.catsuperberg.pexels.app.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
