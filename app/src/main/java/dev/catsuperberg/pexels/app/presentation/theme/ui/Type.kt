@@ -1,4 +1,4 @@
-package dev.catsuperberg.pexels.app.ui.theme
+package dev.catsuperberg.pexels.app.presentation.theme.ui
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

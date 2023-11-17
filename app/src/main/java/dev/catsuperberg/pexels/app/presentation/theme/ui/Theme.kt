@@ -1,4 +1,4 @@
-package dev.catsuperberg.pexels.app.ui.theme
+package dev.catsuperberg.pexels.app.presentation.theme.ui
 
 import android.app.Activity
 import android.os.Build
