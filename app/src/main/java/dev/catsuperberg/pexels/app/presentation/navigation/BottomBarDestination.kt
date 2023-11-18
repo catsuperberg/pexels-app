@@ -1,7 +1,7 @@
 package dev.catsuperberg.pexels.app.presentation.navigation
 
-import dev.catsuperberg.pexels.app.presentation.ui.destinations.Destination
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.BookmarksScreenDestination
+import dev.catsuperberg.pexels.app.presentation.ui.destinations.Destination
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.HomeScreenDestination
 
 enum class BottomBarDestination(

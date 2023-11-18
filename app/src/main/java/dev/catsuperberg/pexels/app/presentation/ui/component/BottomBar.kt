@@ -17,8 +17,8 @@ import androidx.navigation.NavController
 import com.ramcosta.composedestinations.navigation.navigate
 import com.ramcosta.composedestinations.spec.DirectionDestinationSpec
 import dev.catsuperberg.pexels.app.presentation.navigation.BottomBarDestination
-import dev.catsuperberg.pexels.app.presentation.ui.extension.shadow
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.Destination
+import dev.catsuperberg.pexels.app.presentation.ui.extension.shadow
 
 @Composable
 fun BottomBar(
