@@ -11,7 +11,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.ramcosta.composedestinations.navigation.navigate
@@ -19,6 +18,7 @@ import com.ramcosta.composedestinations.spec.DirectionDestinationSpec
 import dev.catsuperberg.pexels.app.presentation.navigation.BottomBarDestination
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.Destination
 import dev.catsuperberg.pexels.app.presentation.ui.extension.shadow
+import dev.catsuperberg.pexels.app.presentation.ui.theme.extendedColors
 
 @Composable
 fun BottomBar(
@@ -26,10 +26,13 @@ fun BottomBar(
     currentDestination: Destination?,
     modifier: Modifier = Modifier
 ) {
-    val shadowColor = Color(android.graphics.Color.parseColor("#1E1E1E"))
     Box(
         modifier = modifier
-            .shadow(color = shadowColor.copy(alpha = 0.06f), offsetY = (-2).dp, blurRadius = 20.dp)
+            .shadow(
+                color = MaterialTheme.extendedColors.black.copy(alpha = 0.06f),
+                offsetY = (-2).dp,
+                blurRadius = 20.dp
+            )
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -43,7 +46,7 @@ fun BottomBar(
                     enabled = currentDestination?.let { it != destination.direction } ?: false,
                     onClick = {
                         navController.navigate(destination.direction as DirectionDestinationSpec) {
-                            launchSingleTop = true
+                            popUpTo(destination.direction.route) { inclusive = true }
                         }
                     }
                 ) {
