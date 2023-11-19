@@ -143,8 +143,8 @@ fun PexelsAppTheme(
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.material.background.toArgb()
             window.navigationBarColor = colorScheme.material.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
-            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
         }
     }
 

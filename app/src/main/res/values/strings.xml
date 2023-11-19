@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Pexels App</string>
+    <string name="search">Search</string>
+    <string name="search_input_field">Search input field</string>
 </resources>
