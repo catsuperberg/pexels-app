@@ -1,14 +1,23 @@
+import java.security.KeyException
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
 }
+
+val apiKeyFile = "apikey.properties"
+val apiKeyDefaultsFile = "apikeydefault.properties"
+val apiKeyField = "PEXELS_API_KEY"
 
 android {
     namespace = "dev.catsuperberg.pexels.app"
     compileSdk = 34
 
+    android.buildFeatures.buildConfig = true
     defaultConfig {
         applicationId = "dev.catsuperberg.pexels.app"
         minSdk = 24
@@ -20,6 +29,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigField("String", apiKeyField, retrieveApiKey())
     }
 
     buildTypes {
@@ -62,6 +73,9 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.48.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
     ksp("io.github.raamcosta.compose-destinations:ksp:1.9.54")
     ksp("com.google.dagger:dagger-compiler:2.48.1")
     ksp("com.google.dagger:hilt-android-compiler:2.48.1")
@@ -72,4 +86,30 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+fun retrieveApiKey(): String {
+    val properties = Properties()
+    val apiKeyFile = layout.projectDirectory.file(apiKeyFile)
+    if (apiKeyFile.asFile.exists().not())
+        resetApiKeyFile()
+    properties.load(apiKeyFile.asFile.reader())
+    val key = properties.getProperty(apiKeyField)
+    if(key == "\"\"")
+        throw ProjectConfigurationException("Provide a valid API key in: $apiKeyFile", KeyException())
+    return key
+}
+
+fun resetApiKeyFile() {
+    copy {
+        val origin = layout.projectDirectory.file(apiKeyDefaultsFile)
+        val destination = layout.projectDirectory
+        from(origin)
+        rename("(.*)", apiKeyFile)
+        into(destination)
+
+        println("resetApiKeysFile executed on $origin in $destination")
+        val destinationFile = destination.file(apiKeyFile)
+        println("$destinationFile exists: ${destinationFile.asFile.exists()}")
+    }
 }
