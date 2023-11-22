@@ -1,5 +1,6 @@
 package dev.catsuperberg.pexels.app.presentation.view.model
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,9 +28,9 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val result = collectionProvider.get(collectionCount)
-            if(result.isSuccess)
-                _collections.value = result.getOrNull()?.map { it.title } ?: listOf()
+            collectionProvider.get(collectionCount)
+                .onSuccess { values -> _collections.value = values.map { it.title } }
+                .onFailure { Log.e("E", it.toString()) }
         }
     }
 

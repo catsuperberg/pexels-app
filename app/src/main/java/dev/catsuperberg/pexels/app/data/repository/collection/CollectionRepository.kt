@@ -1,71 +1,64 @@
 package dev.catsuperberg.pexels.app.data.repository.collection
 
-import android.os.NetworkOnMainThreadException
-import android.util.Log
-import dev.catsuperberg.pexels.app.data.exception.DataException
+import dev.catsuperberg.pexels.app.data.exception.ApiException
+import dev.catsuperberg.pexels.app.data.exception.ApiException.EmptyAnswerException
+import dev.catsuperberg.pexels.app.data.exception.ApiException.FailedRequestException
 import dev.catsuperberg.pexels.app.domain.model.PexelsCollection
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import retrofit2.Response
 import javax.inject.Inject
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class CollectionRepository @Inject constructor(
     private val api: CollectionApi,
     private val mapper: ICollectionMapper
 ): ICollectionRepository {
     private val maxPerPage = 80
-    private val scope = CoroutineScope(Dispatchers.IO)
 
-    override suspend fun getFeatured(count: Int): Result<List<PexelsCollection>> = suspendCoroutine { continuation ->
-        scope.launch {
-            try {
-                val totalResults = getTotalResults()
-                if(totalResults.isFailure)
-                    throw Exception("Empty body")
-
-                totalResults.getOrNull()?.also { total ->
-                    val finalCount = count.coerceAtMost(total)
-                    val requestCounts = finalCount.split(maxPerPage)
-                    val requestResults = requestCounts
-                        .mapIndexed { page, count -> api.getFeatured(page, count).execute() }
-                    val successful = requestResults.filter { it.isSuccessful }.mapNotNull { it.body() }
-                    if(successful.isNotEmpty()) {
-                        val collections = successful
-                            .flatMap { it.collections.map(mapper::map) }
-                            .distinct()
-                        continuation.resume(Result.success(collections))
-                    }
-                    else
-                        continuation.resume(Result.failure(
-                            DataException.FailedRequestException("No request by ${::CollectionRepository.name} was successful")
-                        ))
-                }
-            } catch (e: NetworkOnMainThreadException) {
-                Log.e("E", "Exception in CollectionRepository: $e")
-            }
+    override suspend fun getFeatured(count: Int): Result<List<PexelsCollection>> = withContext(Dispatchers.IO) {
+        try {
+            val availableCollectionCount = getTotalResults()
+            Result.success(getCollections(count, availableCollectionCount))
+        } catch (e: ApiException) {
+            Result.failure(e)
         }
     }
 
-    private fun Int.split(max: Int): List<Int> {
-        if(this == 0 || max == 0)
-            return listOf(0)
-        val remainder = this % max
-        val elements = this / max
-        return if(remainder == 0) List(elements) { max } else
-            List(elements + 1) { index -> if(index < elements) max else remainder }
+    private fun getCollections(count: Int, total: Int): List<PexelsCollection> {
+        val finalCount = count.coerceAtMost(total)
+        return if (finalCount <= maxPerPage) getInOnePage(finalCount) else getMultiPage(count)
     }
 
-    private suspend fun getTotalResults(): Result<Int> = suspendCoroutine { continuation ->
+    private fun getInOnePage(count: Int): List<PexelsCollection> {
+        val result = api.getFeatured(perPage = count).execute()
+        if (result.isSuccessful.not())
+            throw EmptyAnswerException(result.errorBody().toString())
+        return result.body()?.collections?.map(mapper::map) ?: throw EmptyAnswerException("API returned no collections")
+    }
+
+    private fun getMultiPage(count: Int): List<PexelsCollection> {
+        val pageCount = count / maxPerPage
+        val requestResults = List(pageCount) { api.getFeatured(perPage = maxPerPage) }.map { it.execute() }
+        val successful = requestResults.filter { it.isSuccessful }.mapNotNull { it.body() }
+        if (successful.isEmpty())
+            throwNoSuccessful(requestResults)
+
+        return successful
+            .flatMap { it.collections.map(mapper::map) }
+            .distinct()
+            .take(count)
+    }
+
+    private fun throwNoSuccessful(requestResults: List<Response<CollectionRequestDTO>>) {
+        val firstFailed = requestResults.firstOrNull { it.isSuccessful.not() }
+        val errorMessage = firstFailed?.let { "Error: ${it.errorBody()}." } ?: ""
+        throw FailedRequestException("No request by ${::CollectionRepository.name} was successful. $errorMessage")
+    }
+
+    private fun getTotalResults(): Int {
         val result = api.getFeatured(1, 1).execute()
-        if (result.isSuccessful) {
-            val requestResult = result.body()
-            requestResult?.also { requestDto ->
-                continuation.resume(Result.success(requestDto.totalResults))
-            } ?: continuation.resume(Result.failure(Exception("Empty body")))
-        }
-        else
-            continuation.resume(Result.failure(Exception(result.errorBody().toString())))
+        if (result.isSuccessful.not())
+            throw EmptyAnswerException(result.errorBody().toString())
+        return result.body()?.totalResults ?: throw EmptyAnswerException("Total results returned by API is null")
     }
 }
