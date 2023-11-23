@@ -7,38 +7,35 @@ import dev.catsuperberg.pexels.app.domain.model.PexelsCollection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.Response
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import javax.inject.Inject
 
 class CollectionRepository @Inject constructor(
     private val api: CollectionApi,
     private val mapper: ICollectionMapper
 ): ICollectionRepository {
+    private data class PageRequest(val page: Int, val perPage: Int)
     private val maxPerPage = 80
 
     override suspend fun getFeatured(count: Int): Result<List<PexelsCollection>> = withContext(Dispatchers.IO) {
         try {
-            val availableCollectionCount = getTotalResults()
-            Result.success(getCollections(count, availableCollectionCount))
-        } catch (e: ApiException) {
-            Result.failure(e)
+            Result.success(getCollections(count))
+        } catch (e: Exception) {
+            when (e) {
+                is ApiException,
+                is SocketTimeoutException,
+                is UnknownHostException,
+                is ConnectException -> Result.failure(e)
+                else -> throw e
+            }
         }
     }
 
-    private fun getCollections(count: Int, total: Int): List<PexelsCollection> {
-        val finalCount = count.coerceAtMost(total)
-        return if (finalCount <= maxPerPage) getInOnePage(finalCount) else getMultiPage(count)
-    }
-
-    private fun getInOnePage(count: Int): List<PexelsCollection> {
-        val result = api.getFeatured(perPage = count).execute()
-        if (result.isSuccessful.not())
-            throw EmptyAnswerException(result.errorBody().toString())
-        return result.body()?.collections?.map(mapper::map) ?: throw EmptyAnswerException("API returned no collections")
-    }
-
-    private fun getMultiPage(count: Int): List<PexelsCollection> {
-        val pageCount = count / maxPerPage
-        val requestResults = List(pageCount) { api.getFeatured(perPage = maxPerPage) }.map { it.execute() }
+    private fun getCollections(count: Int): List<PexelsCollection> {
+        val pageRequests = calculatePageRequests(count)
+        val requestResults = pageRequests.map { api.getFeatured(it.page, it.perPage).execute() }
         val successful = requestResults.filter { it.isSuccessful }.mapNotNull { it.body() }
         if (successful.isEmpty())
             throwNoSuccessful(requestResults)
@@ -49,16 +46,25 @@ class CollectionRepository @Inject constructor(
             .take(count)
     }
 
-    private fun throwNoSuccessful(requestResults: List<Response<CollectionRequestDTO>>) {
-        val firstFailed = requestResults.firstOrNull { it.isSuccessful.not() }
-        val errorMessage = firstFailed?.let { "Error: ${it.errorBody()}." } ?: ""
-        throw FailedRequestException("No request by ${::CollectionRepository.name} was successful. $errorMessage")
+    private fun calculatePageRequests(count: Int): List<PageRequest> {
+        val collectionsToReturn = count.coerceAtMost(getAvailableCount())
+        val pageCount = collectionsToReturn / maxPerPage + 1
+        val perPage = collectionsToReturn.coerceAtMost(maxPerPage)
+        return List(pageCount) { PageRequest(it + 1, perPage) }
     }
 
-    private fun getTotalResults(): Int {
+    private fun getAvailableCount(): Int {
         val result = api.getFeatured(1, 1).execute()
-        if (result.isSuccessful.not())
-            throw EmptyAnswerException(result.errorBody().toString())
+        if (result.isSuccessful.not()) {
+            val errorMessage = result.errorBody()?.string()
+            throw FailedRequestException("Request for available collection count resulted in error: $errorMessage")
+        }
         return result.body()?.totalResults ?: throw EmptyAnswerException("Total results returned by API is null")
+    }
+
+    private fun throwNoSuccessful(requestResults: List<Response<CollectionRequestDTO>>) {
+        val firstFailed = requestResults.firstOrNull { it.isSuccessful.not() }
+        val errorMessage = firstFailed?.let { "Error: ${it.errorBody()?.string()}." }
+        throw FailedRequestException("No request by ${this::class.java.name} was successful. $errorMessage")
     }
 }
