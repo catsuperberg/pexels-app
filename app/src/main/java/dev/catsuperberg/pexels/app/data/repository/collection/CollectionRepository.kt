@@ -7,15 +7,18 @@ import dev.catsuperberg.pexels.app.domain.model.PexelsCollection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.Response
+import retrofit2.Retrofit
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import javax.inject.Inject
 
 class CollectionRepository @Inject constructor(
-    private val api: CollectionApi,
+    client: Retrofit,
     private val mapper: ICollectionMapper
 ): ICollectionRepository {
+    private val api = client.create(CollectionApi::class.java)
+
     private data class PageRequest(val page: Int, val perPage: Int)
     private val maxPerPage = 80
 

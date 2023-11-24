@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.catsuperberg.pexels.app.domain.usecase.ICollectionProvider
+import dev.catsuperberg.pexels.app.domain.usecase.IPhotoProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val collectionProvider: ICollectionProvider
+    private val collectionProvider: ICollectionProvider,
+    private val photoProvider: IPhotoProvider
 ) : ViewModel() {
     private val collectionCount = 7
 
@@ -26,10 +28,19 @@ class HomeViewModel @Inject constructor(
     private val _selectedCollection: MutableStateFlow<Int?> = MutableStateFlow(null)
     val selectedCollection: StateFlow<Int?> = _selectedCollection.asStateFlow()
 
+    private val _photos: MutableStateFlow<List<String>> = MutableStateFlow(listOf())
+    val photos: StateFlow<List<String>> = _photos.asStateFlow()
+
     init {
         viewModelScope.launch {
             collectionProvider.get(collectionCount)
                 .onSuccess { values -> _collections.value = values.map { it.title } }
+                .onFailure { Log.e("E", it.toString()) }
+        }
+
+        viewModelScope.launch {
+            photoProvider.getCurated(30)
+                .onSuccess { values -> _photos.value = values.map { "${it.alt ?: "photo"}: ${it.url}" } }
                 .onFailure { Log.e("E", it.toString()) }
         }
     }

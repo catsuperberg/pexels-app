@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -23,6 +24,8 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
+    val photoStrings = viewModel.photos.collectAsState()
+
     Column(
         modifier = modifier.fillMaxSize()
     ) {
@@ -32,8 +35,8 @@ fun HomeScreen(
         LazyColumn(
             modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 12.dp)
         ) {
-            items(100) {
-                Text(text = "Home", modifier = Modifier.fillMaxWidth())
+            items(photoStrings.value.count()) {
+                Text(text = photoStrings.value[it], modifier = Modifier.fillMaxWidth())
             }
         }
     }

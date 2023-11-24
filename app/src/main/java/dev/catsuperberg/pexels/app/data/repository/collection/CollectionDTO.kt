@@ -18,7 +18,7 @@ data class CollectionRequestDTO(
     val page: Int,
     val perPage: Int,
     val totalResults: Int,
-    val nextPage: String,
+    val nextPage: String? = null,
     val prevPage: String? = null,
     val collections: List<CollectionDTO>
 )
