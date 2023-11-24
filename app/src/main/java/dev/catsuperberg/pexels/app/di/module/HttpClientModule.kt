@@ -16,6 +16,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import retrofit2.Retrofit
@@ -40,7 +41,7 @@ object HttpClientModule {
             classDiscriminator = "type"
         }
 
-        val contentType: MediaType = MediaType.get("application/json")
+        val contentType: MediaType = "application/json".toMediaType()
         val client = OkHttpClient.Builder().addInterceptor { chain ->
             val newRequest: Request = chain.request().newBuilder()
                 .addHeader("Authorization", BuildConfig.PEXELS_API_KEY)

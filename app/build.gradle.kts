@@ -78,6 +78,7 @@ dependencies {
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
     implementation("androidx.room:room-runtime:2.6.0")
     implementation("joda-time:joda-time:2.12.5")
+    implementation("io.coil-kt:coil-compose:2.5.0")
     annotationProcessor("androidx.room:room-compiler:2.6.0")
     ksp("io.github.raamcosta.compose-destinations:ksp:1.9.54")
     ksp("com.google.dagger:dagger-compiler:2.48.1")
