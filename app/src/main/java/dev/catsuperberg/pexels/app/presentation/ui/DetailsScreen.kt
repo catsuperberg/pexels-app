@@ -51,31 +51,35 @@ fun DetailsScreen(
     navigator: DestinationsNavigator
 ) {
     val bookmarked = viewModel.bookmarked.collectAsState()
+    val photo = viewModel.photo.collectAsState()
 
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
         modifier = modifier.fillMaxSize()
     ) {
-        DetailsHeader(author = "Bonjour") { navigator.popBackStack() }
-        Box(
-            contentAlignment = Alignment.TopCenter,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-        ) {
-            PhotoCard(
-                url = "No url",
-                aspectRation = 0.7f,
+        DetailsHeader(author = photo.value?.author ?: "") { navigator.popBackStack() }
+        photo.value?.also {
+            Box(
+                contentAlignment = Alignment.TopCenter,
                 modifier = Modifier
                     .padding(horizontal = 24.dp, vertical = 12.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                PhotoCard(
+                    url = it.url,
+                    aspectRation = it.aspectRatio,
+                    description = it.description,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                )
+            }
+            DetailsButtons(
+                bookmarked = bookmarked.value,
+                onDownload = viewModel::onDownload,
+                onBookmarkedChange = viewModel::onBookmarkedChange
             )
         }
-        DetailsButtons(
-            bookmarked = bookmarked.value,
-            onDownload = viewModel::onDownload,
-            onBookmarkedChange = viewModel::onBookmarkedChange
-        )
     }
 }
 

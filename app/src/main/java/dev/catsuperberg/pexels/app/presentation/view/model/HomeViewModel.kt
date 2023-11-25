@@ -9,6 +9,7 @@ import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
 import dev.catsuperberg.pexels.app.domain.usecase.ICollectionProvider
 import dev.catsuperberg.pexels.app.domain.usecase.IPhotoProvider
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.DetailsScreenDestination
+import dev.catsuperberg.pexels.app.presentation.view.model.model.IPhotoMapper
 import dev.catsuperberg.pexels.app.presentation.view.model.model.Photo
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +26,8 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val collectionProvider: ICollectionProvider,
-    private val photoProvider: IPhotoProvider
+    private val photoProvider: IPhotoProvider,
+    private val photoMapper: IPhotoMapper
 ) : ViewModel() {
     private val collectionCount = 7
 
@@ -42,16 +44,8 @@ class HomeViewModel @Inject constructor(
     val navigationEvent: SharedFlow<Direction> = _navigationEvent.asSharedFlow()
 
     private val _photos: MutableStateFlow<List<PexelsPhoto>> = MutableStateFlow(listOf())
-    val photos: StateFlow<List<Photo>> = _photos.map { list ->
-        list.map {
-            Photo(
-                url = it.urlOptimizedSize,
-                aspectRatio = it.width.toFloat() / it.height.toFloat(),
-                author = it.photographer,
-                description = it.alt ?: "Photo"
-            )
-        }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
+    val photos: StateFlow<List<Photo>> = _photos.map { list -> list.map(photoMapper::map)}
+        .stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
 
     init {
         viewModelScope.launch {

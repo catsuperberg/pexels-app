@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import coil.compose.SubcomposeAsyncImage
 import dev.catsuperberg.pexels.app.R
@@ -27,25 +28,19 @@ fun PhotoCard(
 
     SubcomposeAsyncImage(
         model = url,
-        loading = {
-            Box(
-                modifier = Modifier
-                    .aspectRatio(aspectRation)
-                    .shimmer()
-            )
-        },
+        loading = { Box(modifier = Modifier.shimmer()) },
         error = {
             Icon(
                 ImageVector.vectorResource(R.drawable.ic_placeholder),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
-                    .aspectRatio(aspectRation)
                     .background(MaterialTheme.colorScheme.surface)
             )
         },
-        contentDescription = description,
-        contentScale = ContentScale.FillBounds,
+        contentDescription = description ?: stringResource(R.string.default_photo_description),
+        contentScale = ContentScale.FillWidth,
         modifier = clickableModifier
+            .aspectRatio(aspectRation)
     )
 }

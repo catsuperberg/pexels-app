@@ -6,4 +6,5 @@ interface IPhotoRepository {
     suspend fun getCurated(page: Int, perPage: Int): Result<List<PexelsPhoto>>
     suspend fun getCollection(id: String, page: Int, perPage: Int): Result<List<PexelsPhoto>>
     suspend fun getSearch(query: String, page: Int, perPage: Int): Result<List<PexelsPhoto>>
+    suspend fun getPhoto(id: Int): Result<PexelsPhoto>
 }

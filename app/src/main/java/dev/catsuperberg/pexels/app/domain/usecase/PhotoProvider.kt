@@ -18,4 +18,6 @@ class PhotoProvider @Inject constructor(
     override suspend fun getCollection(id: String, count: Int): Result<List<PexelsPhoto>> {
         return repository.getCollection(id, 1, count)
     }
+
+    override suspend fun getPhoto(id: Int): Result<PexelsPhoto> = repository.getPhoto(id)
 }

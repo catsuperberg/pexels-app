@@ -4,5 +4,5 @@ data class Photo(
     val url: String,
     val aspectRatio: Float,
     val author: String,
-    val description: String,
+    val description: String?,
 )

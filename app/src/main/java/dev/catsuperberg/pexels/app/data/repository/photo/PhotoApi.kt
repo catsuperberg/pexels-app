@@ -24,4 +24,7 @@ interface PhotoApi {
         @Query("per_page") perPage: Int = 1,
         @Query("type") type: String = "photos"
     ): Call<MediaCollectionRequestDTO>
+
+    @GET("v1/photos/{id}")
+    fun getPhoto(@Path("id") id: Int): Call<PhotoDTO>
 }
