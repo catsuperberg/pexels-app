@@ -7,6 +7,8 @@ class PhotoMapper @Inject constructor()  : IPhotoMapper {
     override fun map(dto: PhotoDTO): PexelsPhoto =
         PexelsPhoto(
             id = dto.id,
+            width = dto.width,
+            height = dto.height,
             photographer = dto.photographer,
             urlOriginalSize = dto.src.original,
             urlOptimizedSize = dto.src.large2x,

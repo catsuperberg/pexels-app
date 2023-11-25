@@ -18,6 +18,8 @@ sealed class Media
 @SerialName("Photo")
 data class PhotoDTO(
     val id: Int,
+    val width: Int,
+    val height: Int,
     val photographer: String,
     val src: SrcDTO,
     val alt: String

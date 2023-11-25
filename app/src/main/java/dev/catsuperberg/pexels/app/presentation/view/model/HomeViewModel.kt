@@ -37,9 +37,10 @@ class HomeViewModel @Inject constructor(
     val photos: StateFlow<List<Photo>> = _photos.map { list ->
         list.map {
             Photo(
-                it.urlOptimizedSize,
-                it.photographer,
-                it.alt ?: "Photo"
+                url = it.urlOptimizedSize,
+                aspectRatio = it.width.toFloat() / it.height.toFloat(),
+                author = it.photographer,
+                description = it.alt ?: "Photo"
             )
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, listOf())

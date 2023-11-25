@@ -37,7 +37,7 @@ fun Modifier.shimmer(): Modifier = composed {
         brush = Brush.linearGradient(
             colors = listOf(
                 MaterialTheme.colorScheme.surface,
-                MaterialTheme.colorScheme.onSurface,
+                MaterialTheme.colorScheme.onSurfaceVariant,
                 MaterialTheme.colorScheme.surface,
             ),
             start = Offset(startOffsetX, 0f),
