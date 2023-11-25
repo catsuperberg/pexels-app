@@ -1,22 +1,192 @@
 package dev.catsuperberg.pexels.app.presentation.ui
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import dev.catsuperberg.pexels.app.R
+import dev.catsuperberg.pexels.app.presentation.ui.component.PhotoCard
+import dev.catsuperberg.pexels.app.presentation.view.model.DetailsScreenNavArgs
 import dev.catsuperberg.pexels.app.presentation.view.model.DetailsViewModel
 
 @RootNavGraph
-@Destination
+@Destination (navArgsDelegate = DetailsScreenNavArgs::class)
 @Composable
 fun DetailsScreen(
     modifier: Modifier = Modifier,
     viewModel: DetailsViewModel = hiltViewModel(),
+    navigator: DestinationsNavigator
 ) {
-    Text(
-        text = "Details",
+    val bookmarked = viewModel.bookmarked.collectAsState()
+
+    Column(
+        verticalArrangement = Arrangement.SpaceBetween,
+        modifier = modifier.fillMaxSize()
+    ) {
+        DetailsHeader(author = "Bonjour") { navigator.popBackStack() }
+        Box(
+            contentAlignment = Alignment.TopCenter,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
+            PhotoCard(
+                url = "No url",
+                aspectRation = 0.7f,
+                modifier = Modifier
+                    .padding(horizontal = 24.dp, vertical = 12.dp)
+                    .clip(RoundedCornerShape(16.dp))
+            )
+        }
+        DetailsButtons(
+            bookmarked = bookmarked.value,
+            onDownload = viewModel::onDownload,
+            onBookmarkedChange = viewModel::onBookmarkedChange
+        )
+    }
+}
+
+@Composable
+private fun DetailsHeader(modifier: Modifier = Modifier, author: String, onBack: () -> Unit) {
+    Box(
+        contentAlignment = Alignment.CenterStart,
         modifier = modifier
-    )
+            .padding(horizontal = 24.dp, vertical = 12.dp)
+            .fillMaxWidth()
+            .height(50.dp)
+    ) {
+        Button(
+            onClick = onBack,
+            shape = RoundedCornerShape(12.dp),
+            contentPadding = PaddingValues(0.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                disabledContainerColor = MaterialTheme.colorScheme.primary,
+                disabledContentColor = MaterialTheme.colorScheme.onPrimary
+            ),
+            modifier = Modifier
+                .height(40.dp)
+                .aspectRatio(1f)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.ArrowBack,
+                contentDescription = null,
+            )
+        }
+
+        Text(
+            text = author,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.headlineLarge,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.Center)
+        )
+    }
+}
+
+@Composable
+private fun DetailsButtons(
+    modifier: Modifier = Modifier,
+    bookmarked: Boolean,
+    onDownload: () -> Unit,
+    onBookmarkedChange: () -> Unit
+) {
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = modifier
+            .padding(horizontal = 24.dp, vertical = 24.dp)
+            .fillMaxWidth()
+            .height(48.dp)
+    ) {
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surface,
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(180.dp)
+        ) {
+            Row(modifier = Modifier.fillMaxSize()) {
+                Button(
+                    onClick = onDownload,
+                    shape = CircleShape,
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .aspectRatio(1f)
+                ) {
+                    Icon(
+                        painterResource(R.drawable.ic_download),
+                        contentDescription = null,
+                    )
+                }
+
+                Text(
+                    text = stringResource(R.string.download),
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .wrapContentHeight()
+                )
+            }
+        }
+
+        val icon = if (bookmarked) R.drawable.is_bookmark_filled else R.drawable.is_bookmark_outline
+        val contentColor = if (bookmarked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+
+        Button(
+            onClick = onBookmarkedChange,
+            shape = CircleShape,
+            contentPadding = PaddingValues(0.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = contentColor,
+                disabledContainerColor = MaterialTheme.colorScheme.primary,
+                disabledContentColor = MaterialTheme.colorScheme.onPrimary
+            ),
+            modifier = Modifier
+                .fillMaxHeight()
+                .aspectRatio(1f)
+        ) {
+            Icon(
+                painterResource(icon),
+                contentDescription = null,
+            )
+        }
+    }
 }

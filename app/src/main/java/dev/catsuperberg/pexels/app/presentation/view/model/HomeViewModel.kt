@@ -3,14 +3,19 @@ package dev.catsuperberg.pexels.app.presentation.view.model
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ramcosta.composedestinations.spec.Direction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
 import dev.catsuperberg.pexels.app.domain.usecase.ICollectionProvider
 import dev.catsuperberg.pexels.app.domain.usecase.IPhotoProvider
+import dev.catsuperberg.pexels.app.presentation.ui.destinations.DetailsScreenDestination
 import dev.catsuperberg.pexels.app.presentation.view.model.model.Photo
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -32,6 +37,9 @@ class HomeViewModel @Inject constructor(
     val collections: StateFlow<List<String>> = _collections.asStateFlow()
     private val _selectedCollection: MutableStateFlow<Int?> = MutableStateFlow(null)
     val selectedCollection: StateFlow<Int?> = _selectedCollection.asStateFlow()
+
+    private val _navigationEvent: MutableSharedFlow<Direction> = MutableSharedFlow()
+    val navigationEvent: SharedFlow<Direction> = _navigationEvent.asSharedFlow()
 
     private val _photos: MutableStateFlow<List<PexelsPhoto>> = MutableStateFlow(listOf())
     val photos: StateFlow<List<Photo>> = _photos.map { list ->
@@ -76,6 +84,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onDetails(id: Int) {
-        TODO()
+        val dbId = _photos.value[id].id
+        viewModelScope.launch { _navigationEvent.emit(DetailsScreenDestination(DetailsScreenNavArgs(dbId))) }
     }
 }

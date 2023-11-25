@@ -25,4 +25,11 @@ val Typography = Typography(
         lineHeight = 14.sp,
         letterSpacing = 0.5.sp
     ),
+    headlineLarge = TextStyle(
+        fontFamily = appFont,
+        fontWeight = FontWeight.Bold,
+        fontSize = 18.sp,
+        lineHeight = 18.sp,
+        letterSpacing = 0.5.sp
+    ),
 )

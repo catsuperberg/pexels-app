@@ -1,4 +1,4 @@
-package dev.catsuperberg.pexels.app.presentation.ui.component
+package dev.catsuperberg.pexels.app.presentation.ui.extension
 
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable

@@ -23,7 +23,7 @@ fun BookmarksScreen(
     Column(modifier = modifier)
     {
         Text(text = "Bookmarks")
-        Button(onClick = { navigator.navigate(DetailsScreenDestination) }) {
+        Button(onClick = { navigator.navigate(DetailsScreenDestination(1)) }) {
             Text(text = "Details")
         }
     }
