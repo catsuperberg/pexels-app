@@ -1,6 +1,5 @@
 package dev.catsuperberg.pexels.app.di.module
 
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

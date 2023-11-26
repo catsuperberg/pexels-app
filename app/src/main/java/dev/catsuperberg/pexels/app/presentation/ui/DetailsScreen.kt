@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -39,6 +37,7 @@ import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import dev.catsuperberg.pexels.app.R
 import dev.catsuperberg.pexels.app.presentation.ui.component.PhotoCard
+import dev.catsuperberg.pexels.app.presentation.ui.component.UpButtonHeader
 import dev.catsuperberg.pexels.app.presentation.view.model.DetailsScreenNavArgs
 import dev.catsuperberg.pexels.app.presentation.view.model.DetailsViewModel
 
@@ -57,7 +56,7 @@ fun DetailsScreen(
         verticalArrangement = Arrangement.SpaceBetween,
         modifier = modifier.fillMaxSize()
     ) {
-        DetailsHeader(author = photo.value?.author ?: "") { navigator.popBackStack() }
+        UpButtonHeader(headerText = photo.value?.author ?: "") { navigator.popBackStack() }
         photo.value?.also {
             Box(
                 contentAlignment = Alignment.TopCenter,
@@ -80,46 +79,6 @@ fun DetailsScreen(
                 onBookmarkedChange = viewModel::onBookmarkedChange
             )
         }
-    }
-}
-
-@Composable
-private fun DetailsHeader(modifier: Modifier = Modifier, author: String, onBack: () -> Unit) {
-    Box(
-        contentAlignment = Alignment.CenterStart,
-        modifier = modifier
-            .padding(horizontal = 24.dp, vertical = 12.dp)
-            .fillMaxWidth()
-            .height(50.dp)
-    ) {
-        Button(
-            onClick = onBack,
-            shape = RoundedCornerShape(12.dp),
-            contentPadding = PaddingValues(0.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                disabledContainerColor = MaterialTheme.colorScheme.primary,
-                disabledContentColor = MaterialTheme.colorScheme.onPrimary
-            ),
-            modifier = Modifier
-                .height(40.dp)
-                .aspectRatio(1f)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.ArrowBack,
-                contentDescription = null,
-            )
-        }
-
-        Text(
-            text = author,
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.headlineLarge,
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.Center)
-        )
     }
 }
 
