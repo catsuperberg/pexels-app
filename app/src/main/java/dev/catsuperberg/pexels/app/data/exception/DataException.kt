@@ -10,3 +10,7 @@ sealed class DatabaseException(override val message: String) : Exception(message
     data class FailedDatabaseInsertException(override val message: String) : ApiException(message)
     data class FailedDatabaseDeleteException(override val message: String) : ApiException(message)
 }
+
+sealed class StorageException(override val message: String) : Exception(message) {
+    data class FailedSavingFileException(override val message: String) : ApiException(message)
+}

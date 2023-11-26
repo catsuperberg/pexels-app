@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
 import dev.catsuperberg.pexels.app.domain.usecase.IBookmarkAccess
+import dev.catsuperberg.pexels.app.domain.usecase.IPhotoDownloader
 import dev.catsuperberg.pexels.app.domain.usecase.ISinglePhotoProvider
 import dev.catsuperberg.pexels.app.presentation.ui.navArgs
 import dev.catsuperberg.pexels.app.presentation.view.model.model.IPhotoMapper
@@ -30,6 +31,7 @@ class DetailsViewModel @Inject constructor(
     state: SavedStateHandle,
     private val photoProvider: ISinglePhotoProvider,
     private val photoMapper: IPhotoMapper,
+    private val downloader: IPhotoDownloader,
     private val bookmarkAccess: IBookmarkAccess
 ) : ViewModel() {
     private val navArgs: DetailsScreenNavArgs = state.navArgs()
@@ -53,7 +55,7 @@ class DetailsViewModel @Inject constructor(
     }
 
     fun onDownload() {
-        TODO()
+        photo.value?.let { viewModelScope.launch { downloader.download(it.url) } }
     }
 
     fun onBookmarkedChange() {

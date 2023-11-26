@@ -32,7 +32,8 @@ class BookmarkedPhotoRepository @Inject constructor(
                     val now = DateTime.now(DateTimeZone.UTC).millis
                     val localUriOriginal = storage.save(photo.urlOriginalSize)
                     val localUriOptimized = storage.save(photo.urlOptimizedSize)
-                    Result.success(bookmarkedDao.insertAll(mapper.map(photo, localUriOriginal, localUriOptimized, now)))
+                    bookmarkedDao.insertAll(mapper.map(photo, localUriOriginal, localUriOptimized, now))
+                    Result.success(Unit)
                 },
                 onFailure = { e -> throw e }
             )
@@ -46,7 +47,8 @@ class BookmarkedPhotoRepository @Inject constructor(
             val photo = bookmarkedDao.findById(id)
             storage.delete(photo.localUriOriginal)
             storage.delete(photo.localUriOptimized)
-            Result.success(bookmarkedDao.delete(photo))
+            bookmarkedDao.delete(photo)
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(FailedDatabaseDeleteException("Couldn't delete bookmarked photo: $id. Cause: $e"))
         }
