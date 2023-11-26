@@ -4,7 +4,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
-import dev.catsuperberg.pexels.app.data.repository.photo.IPhotoMapper
+import dev.catsuperberg.pexels.app.data.model.IPhotoMapper
 import dev.catsuperberg.pexels.app.data.repository.photo.IPhotoRepository
 import dev.catsuperberg.pexels.app.data.repository.photo.PhotoRepository
 import retrofit2.Retrofit

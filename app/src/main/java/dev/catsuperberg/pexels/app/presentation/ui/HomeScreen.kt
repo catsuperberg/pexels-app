@@ -30,15 +30,13 @@ fun HomeScreen(
     navigator: DestinationsNavigator,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
-    val photoStrings = viewModel.photos.collectAsState()
+    val photos = viewModel.photos.collectAsState()
 
     LaunchedEffect(true) {
         viewModel.navigationEvent.collect(navigator::navigate)
     }
 
-    Column(
-        modifier = modifier.fillMaxSize()
-    ) {
+    Column(modifier = modifier.fillMaxSize()) {
         SearchBar()
         FeaturedCollections(viewModel = viewModel)
 
@@ -48,8 +46,8 @@ fun HomeScreen(
             horizontalArrangement = Arrangement.spacedBy(17.dp),
             modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 12.dp)
         ) {
-            items(photoStrings.value.count()) {
-                val photo = photoStrings.value[it]
+            items(photos.value.count()) {
+                val photo = photos.value[it]
 
                 PhotoCard(
                     url = photo.url,

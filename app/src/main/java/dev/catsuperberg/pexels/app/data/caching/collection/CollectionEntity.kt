@@ -7,5 +7,5 @@ import androidx.room.PrimaryKey
 data class CollectionEntity(
     @PrimaryKey val id: String,
     val title: String,
-    val timeCreated: Long
+    val timeAdded: Long
 )

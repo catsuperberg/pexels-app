@@ -1,6 +1,7 @@
-package dev.catsuperberg.pexels.app.data.repository.collection
+package dev.catsuperberg.pexels.app.data.model
 
 import dev.catsuperberg.pexels.app.data.caching.collection.CollectionEntity
+import dev.catsuperberg.pexels.app.data.repository.collection.CollectionDTO
 import dev.catsuperberg.pexels.app.domain.model.PexelsCollection
 import javax.inject.Inject
 

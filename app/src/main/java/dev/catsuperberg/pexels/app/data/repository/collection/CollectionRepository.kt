@@ -3,6 +3,7 @@ package dev.catsuperberg.pexels.app.data.repository.collection
 import dev.catsuperberg.pexels.app.data.exception.ApiException
 import dev.catsuperberg.pexels.app.data.exception.ApiException.EmptyAnswerException
 import dev.catsuperberg.pexels.app.data.exception.ApiException.FailedRequestException
+import dev.catsuperberg.pexels.app.data.model.ICollectionMapper
 import dev.catsuperberg.pexels.app.domain.model.PexelsCollection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

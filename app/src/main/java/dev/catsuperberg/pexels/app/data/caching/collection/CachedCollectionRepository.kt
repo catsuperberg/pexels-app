@@ -2,8 +2,8 @@ package dev.catsuperberg.pexels.app.data.caching.collection
 
 import android.util.Log
 import dev.catsuperberg.pexels.app.data.caching.CacheConst
-import dev.catsuperberg.pexels.app.data.exception.CacheException
-import dev.catsuperberg.pexels.app.data.repository.collection.ICollectionMapper
+import dev.catsuperberg.pexels.app.data.exception.DatabaseException.FailedDatabaseRequestException
+import dev.catsuperberg.pexels.app.data.model.ICollectionMapper
 import dev.catsuperberg.pexels.app.data.repository.collection.ICollectionRepository
 import dev.catsuperberg.pexels.app.domain.model.PexelsCollection
 import kotlinx.coroutines.CoroutineScope
@@ -48,13 +48,13 @@ class CachedCollectionRepository @Inject constructor(
             val entities = clearExpired(collectionDao.getFirst(count))
             Result.success(entities.map(mapper::map))
         } catch (e: Exception) {
-            Result.failure(CacheException.FailedDatabaseRequestException(e.toString()))
+            Result.failure(FailedDatabaseRequestException(e.toString()))
         }
     }
 
     private fun clearExpired(entities: List<CollectionEntity>): List<CollectionEntity> {
         val expiredBefore = DateTime.now(DateTimeZone.UTC).minusSeconds(CacheConst.expirationSeconds).millis
-        val (valid, expired) = entities.partition { it.timeCreated > expiredBefore }
+        val (valid, expired) = entities.partition { it.timeAdded > expiredBefore }
         scope.launch { expired.forEach(collectionDao::delete) }
         return valid
     }

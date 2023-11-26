@@ -8,6 +8,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.catsuperberg.pexels.app.data.ApplicationDatabase
+import dev.catsuperberg.pexels.app.data.bookmark.photo.BookmarkedDao
 import dev.catsuperberg.pexels.app.data.caching.collection.CollectionDao
 import javax.inject.Singleton
 
@@ -19,11 +20,15 @@ object DatabaseModule {
     fun providesDatabase(@ApplicationContext appContext: Context): ApplicationDatabase {
         return Room.databaseBuilder(
             appContext,
-            ApplicationDatabase::class.java, "cache-db"
+            ApplicationDatabase::class.java, "pexels-app-db"
         ).build()
     }
 
     @Singleton
     @Provides
     fun providesCollectionDao(db: ApplicationDatabase): CollectionDao = db.collectionDao()
+
+    @Singleton
+    @Provides
+    fun providesBookmarkDao(db: ApplicationDatabase): BookmarkedDao = db.bookmarkedDao()
 }

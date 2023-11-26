@@ -2,6 +2,7 @@ package dev.catsuperberg.pexels.app.data.repository.photo
 
 import dev.catsuperberg.pexels.app.data.exception.ApiException.EmptyAnswerException
 import dev.catsuperberg.pexels.app.data.exception.ApiException.FailedRequestException
+import dev.catsuperberg.pexels.app.data.model.IPhotoMapper
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

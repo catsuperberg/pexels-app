@@ -4,8 +4,8 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
-import dev.catsuperberg.pexels.app.data.repository.photo.IPhotoMapper
-import dev.catsuperberg.pexels.app.data.repository.photo.PhotoMapper
+import dev.catsuperberg.pexels.app.data.model.IPhotoMapper
+import dev.catsuperberg.pexels.app.data.model.PhotoMapper
 
 @Module
 @InstallIn(ViewModelComponent::class)

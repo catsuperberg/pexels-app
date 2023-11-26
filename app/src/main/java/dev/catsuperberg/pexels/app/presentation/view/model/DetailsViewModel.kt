@@ -6,7 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
-import dev.catsuperberg.pexels.app.domain.usecase.IPhotoProvider
+import dev.catsuperberg.pexels.app.domain.usecase.IBookmarkAccess
+import dev.catsuperberg.pexels.app.domain.usecase.ISinglePhotoProvider
 import dev.catsuperberg.pexels.app.presentation.ui.navArgs
 import dev.catsuperberg.pexels.app.presentation.view.model.model.IPhotoMapper
 import dev.catsuperberg.pexels.app.presentation.view.model.model.Photo
@@ -27,8 +28,9 @@ data class DetailsScreenNavArgs(
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
     state: SavedStateHandle,
-    private val photoProvider: IPhotoProvider,
+    private val photoProvider: ISinglePhotoProvider,
     private val photoMapper: IPhotoMapper,
+    private val bookmarkAccess: IBookmarkAccess
 ) : ViewModel() {
     private val navArgs: DetailsScreenNavArgs = state.navArgs()
     private val photoId = navArgs.photoId
@@ -45,6 +47,9 @@ class DetailsViewModel @Inject constructor(
                 .onSuccess { value -> _photo.value = value }
                 .onFailure { Log.e("E", it.toString()) }
         }
+
+
+        viewModelScope.launch { refreshBookmarked() }
     }
 
     fun onDownload() {
@@ -52,6 +57,16 @@ class DetailsViewModel @Inject constructor(
     }
 
     fun onBookmarkedChange() {
-        TODO()
+        viewModelScope.launch {
+            bookmarkAccess.setBookmarked(photoId, !_bookmarked.value)
+                .onSuccess { refreshBookmarked() }
+                .onFailure { Log.e("E", it.toString()) }
+        }
+    }
+
+    private suspend fun refreshBookmarked() {
+        bookmarkAccess.isBookmarked(photoId)
+            .onSuccess { value -> _bookmarked.value = value }
+            .onFailure { Log.e("E", it.toString()) }
     }
 }

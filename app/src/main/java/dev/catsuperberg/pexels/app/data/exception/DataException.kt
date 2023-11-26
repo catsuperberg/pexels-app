@@ -5,6 +5,8 @@ sealed class ApiException(override val message: String) : Exception(message) {
     data class EmptyAnswerException(override val message: String) : ApiException(message)
 }
 
-sealed class CacheException(override val message: String) : Exception(message) {
+sealed class DatabaseException(override val message: String) : Exception(message) {
     data class FailedDatabaseRequestException(override val message: String) : ApiException(message)
+    data class FailedDatabaseInsertException(override val message: String) : ApiException(message)
+    data class FailedDatabaseDeleteException(override val message: String) : ApiException(message)
 }

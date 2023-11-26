@@ -29,6 +29,9 @@ class HomeViewModel @Inject constructor(
     private val photoProvider: IPhotoProvider,
     private val photoMapper: IPhotoMapper
 ) : ViewModel() {
+    private val _navigationEvent: MutableSharedFlow<Direction> = MutableSharedFlow()
+    val navigationEvent: SharedFlow<Direction> = _navigationEvent.asSharedFlow()
+
     private val collectionCount = 7
 
     private val _searchPrompt: MutableStateFlow<String> = MutableStateFlow("")
@@ -39,9 +42,6 @@ class HomeViewModel @Inject constructor(
     val collections: StateFlow<List<String>> = _collections.asStateFlow()
     private val _selectedCollection: MutableStateFlow<Int?> = MutableStateFlow(null)
     val selectedCollection: StateFlow<Int?> = _selectedCollection.asStateFlow()
-
-    private val _navigationEvent: MutableSharedFlow<Direction> = MutableSharedFlow()
-    val navigationEvent: SharedFlow<Direction> = _navigationEvent.asSharedFlow()
 
     private val _photos: MutableStateFlow<List<PexelsPhoto>> = MutableStateFlow(listOf())
     val photos: StateFlow<List<Photo>> = _photos.map { list -> list.map(photoMapper::map)}

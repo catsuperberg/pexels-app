@@ -16,8 +16,8 @@ interface CollectionDao {
     @Query("SELECT * FROM collection LIMIT :count")
     fun getFirst(count: Int): List<CollectionEntity>
 
-    @Query("SELECT * FROM collection WHERE title LIKE :first AND title LIKE :last LIMIT 1")
-    fun findByTitle(first: String, last: String): CollectionEntity
+    @Query("SELECT * FROM collection WHERE title = :title")
+    fun findByTitle(title: String): CollectionEntity
 
     @Insert
     fun insertAll(vararg users: CollectionEntity)
