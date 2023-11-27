@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ramcosta.composedestinations.spec.Direction
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.catsuperberg.pexels.app.domain.async.JobQueue
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
 import dev.catsuperberg.pexels.app.domain.usecase.ICollectionProvider
 import dev.catsuperberg.pexels.app.domain.usecase.IPhotoProvider
@@ -33,6 +34,7 @@ class HomeViewModel @Inject constructor(
     val navigationEvent: SharedFlow<Direction> = _navigationEvent.asSharedFlow()
 
     private val collectionCount = 7
+    private val paginationCount = 30
 
     private val _searchPrompt: MutableStateFlow<String> = MutableStateFlow("")
     val searchPrompt: StateFlow<String> = _searchPrompt.asStateFlow()
@@ -42,23 +44,40 @@ class HomeViewModel @Inject constructor(
     val collections: StateFlow<List<String>> = _collections.asStateFlow()
     private val _selectedCollection: MutableStateFlow<Int?> = MutableStateFlow(null)
     val selectedCollection: StateFlow<Int?> = _selectedCollection.asStateFlow()
-
     private val _photos: MutableStateFlow<List<PexelsPhoto>> = MutableStateFlow(listOf())
     val photos: StateFlow<List<Photo>> = _photos.map { list -> list.map(photoMapper::map)}
         .stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
 
+    private val _loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val loading: StateFlow<Boolean> = _loading.asStateFlow()
+
+    private var pagesLoaded = 0
+    private var collectionRequestActive = false
+    private var paginationQueue: JobQueue = JobQueue(
+        viewModelScope,
+        { updateLoadingState() },
+        { updateLoadingState() }
+    )
+
     init {
         viewModelScope.launch {
+            toggleCollectionRequestActive(true)
             collectionProvider.get(collectionCount)
                 .onSuccess { values -> _collections.value = values.map { it.title } }
                 .onFailure { Log.e("E", it.toString()) }
+            toggleCollectionRequestActive(false)
         }
 
-        viewModelScope.launch {
-            photoProvider.getCurated(30)
-                .onSuccess { values -> _photos.value = values }
-                .onFailure { Log.e("E", it.toString()) }
-        }
+        onLoadMore()
+    }
+
+    private fun toggleCollectionRequestActive(value: Boolean) {
+        collectionRequestActive = value
+        updateLoadingState()
+    }
+
+    private fun updateLoadingState() {
+        _loading.value = collectionRequestActive || paginationQueue.isEmpty.not()
     }
 
     fun onSearchChange(value: String) {
@@ -71,6 +90,14 @@ class HomeViewModel @Inject constructor(
 
     fun onClearSearch() {
         TODO()
+    }
+
+    fun onLoadMore() {
+        paginationQueue.submit {
+            photoProvider.getCurated(++pagesLoaded, paginationCount)
+                .onSuccess { values -> _photos.value = (_photos.value + values).distinct() }
+                .onFailure { Log.e("E", it.toString()) }
+        }
     }
 
     fun onCollectionSelected(index: Int) {

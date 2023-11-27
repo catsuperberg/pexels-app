@@ -31,6 +31,8 @@ android {
         }
 
         buildConfigField("String", apiKeyField, retrieveApiKey())
+
+        ksp { arg("room.schemaLocation", "$projectDir/schemas") }
     }
 
     buildTypes {

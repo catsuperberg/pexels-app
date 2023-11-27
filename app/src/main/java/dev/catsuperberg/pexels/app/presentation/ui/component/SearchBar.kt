@@ -46,7 +46,6 @@ fun SearchBar(
         shape = CircleShape,
         singleLine = true,
         modifier = modifier
-            .padding(horizontal = 24.dp, vertical = 12.dp)
             .fillMaxWidth()
             .height(50.dp)
     )

@@ -7,8 +7,8 @@ import javax.inject.Inject
 class PhotoProvider @Inject constructor(
     private val repository: IPhotoRepository
 ) : IPhotoProvider {
-    override suspend fun getCurated(count: Int): Result<List<PexelsPhoto>> {
-        return repository.getCurated(1, count)
+    override suspend fun getCurated(page: Int, perPage: Int): Result<List<PexelsPhoto>> {
+        return repository.getCurated(page, perPage)
     }
 
     override suspend fun getSearch(query: String, count: Int): Result<List<PexelsPhoto>> {

@@ -11,6 +11,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.catsuperberg.pexels.app.presentation.view.model.HomeViewModel
@@ -18,30 +20,35 @@ import dev.catsuperberg.pexels.app.presentation.view.model.HomeViewModel
 @Composable
 fun FeaturedCollections(
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues,
     viewModel: HomeViewModel
 ) {
     val collections = viewModel.collections.collectAsState()
     val selected = viewModel.selectedCollection.collectAsState()
 
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(horizontal = 24.dp),
-        modifier = modifier
-            .fillMaxWidth()
-            .height(38.dp)
-    ) {
-        items(collections.value.count()) {index ->
-            Button(
-                enabled = selected.value != index,
-                onClick = { viewModel.onCollectionSelected(index) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    disabledContainerColor = MaterialTheme.colorScheme.primary,
-                    disabledContentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) {
-                Text(collections.value[index])
+    val present = remember { derivedStateOf { collections.value.isNotEmpty() } }
+
+    if (present.value) {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = contentPadding,
+            modifier = modifier
+                .fillMaxWidth()
+                .height(38.dp)
+        ) {
+            items(collections.value.count()) { index ->
+                Button(
+                    enabled = selected.value != index,
+                    onClick = { viewModel.onCollectionSelected(index) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        disabledContainerColor = MaterialTheme.colorScheme.primary,
+                        disabledContentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Text(collections.value[index])
+                }
             }
         }
     }
