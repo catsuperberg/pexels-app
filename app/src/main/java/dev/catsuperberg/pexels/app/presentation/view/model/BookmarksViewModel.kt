@@ -43,6 +43,15 @@ class BookmarksViewModel @Inject constructor(
 
     fun onDetails(id: Int) {
         val dbId = _photos.value[id].id
-        viewModelScope.launch { _navigationEvent.emit(DetailsScreenDestination(DetailsScreenNavArgs(dbId))) }
+        viewModelScope.launch {
+            _navigationEvent.emit(
+                DetailsScreenDestination(
+                    DetailsScreenNavArgs(
+                        photoId = dbId,
+                        storageOnlyProvider = true
+                    )
+                )
+            )
+        }
     }
 }

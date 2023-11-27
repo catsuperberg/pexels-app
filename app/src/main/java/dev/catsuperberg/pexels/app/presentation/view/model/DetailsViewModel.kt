@@ -24,17 +24,18 @@ import javax.inject.Inject
 
 data class DetailsScreenNavArgs(
     val photoId: Int,
+    val storageOnlyProvider: Boolean = false
 )
 
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
-    state: SavedStateHandle,
+    stateHandle: SavedStateHandle,
     private val photoProvider: ISinglePhotoProvider,
     private val photoMapper: IPhotoMapper,
     private val downloader: IPhotoDownloader,
     private val bookmarkAccess: IBookmarkAccess
 ) : ViewModel() {
-    private val navArgs: DetailsScreenNavArgs = state.navArgs()
+    private val navArgs: DetailsScreenNavArgs = stateHandle.navArgs()
     private val photoId = navArgs.photoId
 
     private val _photo: MutableStateFlow<PexelsPhoto?> = MutableStateFlow(null)
