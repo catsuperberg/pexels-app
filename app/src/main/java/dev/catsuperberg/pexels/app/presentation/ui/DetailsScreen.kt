@@ -26,17 +26,19 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.SubcomposeAsyncImage
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import dev.catsuperberg.pexels.app.R
-import dev.catsuperberg.pexels.app.presentation.ui.component.PhotoCard
+import dev.catsuperberg.pexels.app.presentation.ui.component.RoundedLinearProgressIndicator
 import dev.catsuperberg.pexels.app.presentation.ui.component.UpButtonHeader
 import dev.catsuperberg.pexels.app.presentation.view.model.DetailsScreenNavArgs
 import dev.catsuperberg.pexels.app.presentation.view.model.DetailsViewModel
@@ -51,12 +53,23 @@ fun DetailsScreen(
 ) {
     val bookmarked = viewModel.bookmarked.collectAsState()
     val photo = viewModel.photo.collectAsState()
+    val loading = viewModel.loading.collectAsState()
 
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
         modifier = modifier.fillMaxSize()
     ) {
-        UpButtonHeader(headerText = photo.value?.author ?: "") { navigator.popBackStack() }
+        Box {
+            UpButtonHeader(headerText = photo.value?.author ?: "") { navigator.popBackStack() }
+            if (loading.value)
+                RoundedLinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .height(4.dp)
+                        .align(Alignment.BottomCenter)
+                )
+        }
         photo.value?.also {
             Box(
                 contentAlignment = Alignment.TopCenter,
@@ -65,10 +78,11 @@ fun DetailsScreen(
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                PhotoCard(
+                DetailsPhotoCard(
                     url = it.url,
                     aspectRation = it.aspectRatio,
                     description = it.description,
+                    onFinished = viewModel::onLoadFinished,
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
                 )
@@ -79,6 +93,27 @@ fun DetailsScreen(
                 onBookmarkedChange = viewModel::onBookmarkedChange
             )
         }
+    }
+}
+
+@Composable
+private fun DetailsPhotoCard(
+    modifier: Modifier = Modifier,
+    url: String,
+    aspectRation: Float,
+    onFinished: (() -> Unit),
+    description: String? = null,
+) {
+    Box(modifier = modifier) {
+        SubcomposeAsyncImage(
+            model = url,
+            onSuccess = { onFinished() },
+            onError = { onFinished() },
+            contentDescription = description ?: stringResource(R.string.default_photo_description),
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier
+                .aspectRatio(aspectRation)
+        )
     }
 }
 

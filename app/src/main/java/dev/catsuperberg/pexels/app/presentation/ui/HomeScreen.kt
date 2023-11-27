@@ -40,8 +40,8 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val photos = viewModel.photos.collectAsState()
-    val loading = viewModel.loading.collectAsState()
     val listState = rememberLazyStaggeredGridState()
+    val loading = viewModel.loading.collectAsState()
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }

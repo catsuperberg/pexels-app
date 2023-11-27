@@ -44,11 +44,18 @@ class DetailsViewModel @Inject constructor(
     private val _bookmarked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val bookmarked: StateFlow<Boolean> = _bookmarked.asStateFlow()
 
+    private val _loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val loading: StateFlow<Boolean> = _loading.asStateFlow()
+
     init {
+        _loading.value = true
         viewModelScope.launch {
             photoProvider.getPhoto(photoId)
                 .onSuccess { value -> _photo.value = value }
-                .onFailure { Log.e("E", it.toString()) }
+                .onFailure {
+                    _loading.value = false
+                    Log.e("E", it.toString())
+                }
         }
 
 
@@ -65,6 +72,10 @@ class DetailsViewModel @Inject constructor(
                 .onSuccess { refreshBookmarked() }
                 .onFailure { Log.e("E", it.toString()) }
         }
+    }
+
+    fun onLoadFinished() {
+        _loading.value = false
     }
 
     private suspend fun refreshBookmarked() {

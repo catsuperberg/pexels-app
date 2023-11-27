@@ -10,7 +10,6 @@ import java.net.URL
 import java.util.UUID
 import javax.inject.Inject
 
-
 class PhotoStorage @Inject constructor(private val context: Context) : IPhotoStorage {
     private val appName = context.getString(context.applicationInfo.labelRes)
     private val appDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), appName)

@@ -18,24 +18,24 @@ class PhotoRepository @Inject constructor(
     private val api = client.create(PhotoApi::class.java)
 
     override suspend fun getCurated(page: Int, perPage: Int): Result<List<PexelsPhoto>> =
-    withContext(Dispatchers.IO) {
-        performCall { getPhotos(api.getCurated(page, perPage)) }
-    }
+        withContext(Dispatchers.IO) {
+            performCall { getPhotos(api.getCurated(page, perPage)) }
+        }
 
     override suspend fun getSearch(query: String, page: Int, perPage: Int): Result<List<PexelsPhoto>> =
-    withContext(Dispatchers.IO) {
-        performCall { getPhotos(api.getSearch(query, page, perPage)) }
-    }
+        withContext(Dispatchers.IO) {
+            performCall { getPhotos(api.getSearch(query, page, perPage)) }
+        }
 
     override suspend fun getPhoto(id: Int): Result<PexelsPhoto> =
-    withContext(Dispatchers.IO) {
-        performCall { getSinglePhoto(id) }
-    }
+        withContext(Dispatchers.IO) {
+            performCall { getSinglePhoto(id) }
+        }
 
     override suspend fun getCollection(id: String, page: Int, perPage: Int): Result<List<PexelsPhoto>> =
-    withContext(Dispatchers.IO) {
-        performCall { getPhotos(api.getCollection(id, page, perPage)) }
-    }
+        withContext(Dispatchers.IO) {
+            performCall { getPhotos(api.getCollection(id, page, perPage)) }
+        }
 
     private fun <T> performCall(action: () -> T) = try {
         Result.success(action())
