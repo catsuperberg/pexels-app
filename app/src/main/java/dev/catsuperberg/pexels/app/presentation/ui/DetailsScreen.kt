@@ -40,6 +40,7 @@ import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import dev.catsuperberg.pexels.app.R
 import dev.catsuperberg.pexels.app.presentation.ui.component.ExploreStub
+import dev.catsuperberg.pexels.app.presentation.ui.component.SnackbarScaffold
 import dev.catsuperberg.pexels.app.presentation.ui.component.UpButtonHeader
 import dev.catsuperberg.pexels.app.presentation.view.model.DetailsScreenNavArgs
 import dev.catsuperberg.pexels.app.presentation.view.model.DetailsViewModel
@@ -59,31 +60,34 @@ fun DetailsScreen(
 
     LaunchedEffect(true) { viewModel.navigationEvent.collect { command -> command(navigator)} }
 
-    Column(
-        verticalArrangement = Arrangement.SpaceBetween,
-        modifier = modifier.fillMaxSize()
-    ) {
-        UpButtonHeader(headerText = photo.value?.author ?: "", loading = loading) { navigator.popBackStack() }
+    SnackbarScaffold(messageFlow = viewModel.snackBarMessage) { _ ->
+        Column(
+            verticalArrangement = Arrangement.SpaceBetween,
+            modifier = modifier.fillMaxSize()
+        ) {
+            UpButtonHeader(headerText = photo.value?.author ?: "", loading = loading) { navigator.popBackStack() }
 
-        if (photoNotFound.value) {
-            ExploreStub(Modifier.fillMaxSize(), "Image not found", viewModel::onExplore)
-            return
-        }
-        photo.value?.also {
-            DetailsPhotoCard(
-                url = it.url,
-                aspectRation = it.aspectRatio,
-                description = it.description,
-                onFinished = viewModel::onLoadFinished,
-                roundedCornerShape = RoundedCornerShape(16.dp),
-                modifier = Modifier.weight(1f)
+            if (photoNotFound.value) {
+                ExploreStub(Modifier.fillMaxSize(), stringResource(R.string.image_not_found), viewModel::onExplore)
+                return@SnackbarScaffold
+            }
+            photo.value?.also {
+                DetailsPhotoCard(
+                    url = it.url,
+                    aspectRation = it.aspectRatio,
+                    description = it.description,
+                    onFinished = viewModel::onImageLoadFinished,
+                    onError = viewModel::onImageLoadFailed,
+                    roundedCornerShape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.weight(1f)
 
-            )
-            DetailsButtons(
-                bookmarked = bookmarked.value,
-                onDownload = viewModel::onDownload,
-                onBookmarkedChange = viewModel::onBookmarkedChange
-            )
+                )
+                DetailsButtons(
+                    bookmarked = bookmarked.value,
+                    onDownload = viewModel::onDownload,
+                    onBookmarkedChange = viewModel::onBookmarkedChange
+                )
+            }
         }
     }
 }
@@ -93,7 +97,8 @@ private fun DetailsPhotoCard(
     modifier: Modifier = Modifier,
     url: String,
     aspectRation: Float,
-    onFinished: (() -> Unit),
+    onFinished: () -> Unit,
+    onError: () -> Unit,
     roundedCornerShape: RoundedCornerShape,
     description: String? = null,
 ) {
@@ -106,7 +111,7 @@ private fun DetailsPhotoCard(
         SubcomposeAsyncImage(
             model = url,
             onSuccess = { onFinished() },
-            onError = { onFinished() },
+            onError = { onError() },
             contentDescription = description ?: stringResource(R.string.default_photo_description),
             contentScale = ContentScale.FillWidth,
             modifier = Modifier

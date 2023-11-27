@@ -5,10 +5,14 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.catsuperberg.pexels.app.R
+import dev.catsuperberg.pexels.app.data.exception.ApiException
+import dev.catsuperberg.pexels.app.data.exception.DatabaseException
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
 import dev.catsuperberg.pexels.app.domain.usecase.IBookmarkAccess
 import dev.catsuperberg.pexels.app.domain.usecase.IPhotoDownloader
 import dev.catsuperberg.pexels.app.domain.usecase.ISinglePhotoProvider
+import dev.catsuperberg.pexels.app.presentation.helper.UiText.StringResource
 import dev.catsuperberg.pexels.app.presentation.navigation.NavigatorCommand
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.HomeScreenDestination
 import dev.catsuperberg.pexels.app.presentation.ui.navArgs
@@ -58,6 +62,9 @@ class DetailsViewModel @Inject constructor(
     private val _photoNotFound: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val photoNotFound: StateFlow<Boolean> = _photoNotFound.asStateFlow()
 
+    private val _snackBarMessage: MutableSharedFlow<StringResource> = MutableSharedFlow(1)
+    val snackBarMessage: SharedFlow<StringResource> = _snackBarMessage.asSharedFlow()
+
     init {
         _loading.value = true
         viewModelScope.launch {
@@ -66,7 +73,12 @@ class DetailsViewModel @Inject constructor(
                 .onFailure {
                     _loading.value = false
                     _photoNotFound.value = true
-                    Log.e("Details", it.toString())
+                    Log.e(this::class.toString(), "Failed retrieving photo data. Cause: $it")
+                    when(it) {
+                        is ApiException -> _snackBarMessage.emit(StringResource(R.string.api_photo_download_error))
+                        is DatabaseException -> _snackBarMessage.emit(StringResource(R.string.database_photo_download_error))
+                        else -> _snackBarMessage.emit(StringResource(R.string.generic_photo_download_error))
+                    }
                 }
         }
 
@@ -82,12 +94,18 @@ class DetailsViewModel @Inject constructor(
         viewModelScope.launch {
             bookmarkAccess.setBookmarked(photoId, !_bookmarked.value)
                 .onSuccess { refreshBookmarked() }
-                .onFailure { Log.e("Details", it.toString()) }
+                .onFailure { displayBookmarkError(it) }
         }
     }
 
-    fun onLoadFinished() {
+    fun onImageLoadFinished() {
         _loading.value = false
+    }
+
+    fun onImageLoadFailed() {
+        _loading.value = false
+        Log.e(this::class.toString(), "Image loader couldn't download an image from ${photo.value?.url}")
+        viewModelScope.launch { _snackBarMessage.emit(StringResource(R.string.image_loader_photo_download_error)) }
     }
 
     fun onExplore() {
@@ -97,7 +115,12 @@ class DetailsViewModel @Inject constructor(
     private suspend fun refreshBookmarked() {
         bookmarkAccess.isBookmarked(photoId)
             .onSuccess { value -> _bookmarked.value = value }
-            .onFailure { Log.e("Details", it.toString()) }
+            .onFailure { displayBookmarkError(it) }
+    }
+
+    private suspend fun displayBookmarkError(e: Throwable) {
+        Log.e(this::class.toString(), "Failed to update bookmark state. Cause: $e")
+        _snackBarMessage.emit(StringResource(R.string.bookmark_error))
     }
 
 

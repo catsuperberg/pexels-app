@@ -6,8 +6,9 @@ import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
 import javax.inject.Inject
 
 class PhotoProvider @Inject constructor(
-    private val repository: IPhotoRepository
-) : IPhotoProvider, SinglePhotoProvider(repository) {
+    private val repository: IPhotoRepository,
+    private val singlePhotoProvider: ISinglePhotoProvider
+) : IPhotoProvider, ISinglePhotoProvider by singlePhotoProvider {
     override suspend fun getCurated(page: Int, perPage: Int): Result<List<PexelsPhoto>> {
         return repository.getCurated(page, perPage)
     }
@@ -21,7 +22,7 @@ class PhotoProvider @Inject constructor(
     }
 }
 
-open class SinglePhotoProvider @Inject constructor(
+class SinglePhotoProvider @Inject constructor(
     private val repository: ISinglePhotoRepository
 ) : ISinglePhotoProvider {
     override suspend fun getPhoto(id: Int): Result<PexelsPhoto> = repository.getPhoto(id)
