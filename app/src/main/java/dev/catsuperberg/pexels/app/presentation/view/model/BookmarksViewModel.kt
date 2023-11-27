@@ -3,10 +3,10 @@ package dev.catsuperberg.pexels.app.presentation.view.model
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ramcosta.composedestinations.spec.Direction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
 import dev.catsuperberg.pexels.app.domain.usecase.IBookmarkedPhotoProvider
+import dev.catsuperberg.pexels.app.presentation.navigation.NavigatorCommand
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.DetailsScreenDestination
 import dev.catsuperberg.pexels.app.presentation.view.model.model.IPhotoMapper
 import dev.catsuperberg.pexels.app.presentation.view.model.model.Photo
@@ -26,8 +26,8 @@ class BookmarksViewModel @Inject constructor(
     private val photoProvider: IBookmarkedPhotoProvider,
     private val photoMapper: IPhotoMapper
 ): ViewModel() {
-    private val _navigationEvent: MutableSharedFlow<Direction> = MutableSharedFlow()
-    val navigationEvent: SharedFlow<Direction> = _navigationEvent.asSharedFlow()
+    private val _navigationEvent: MutableSharedFlow<NavigatorCommand> = MutableSharedFlow()
+    val navigationEvent: SharedFlow<NavigatorCommand> = _navigationEvent.asSharedFlow()
 
     private val _photos: MutableStateFlow<List<PexelsPhoto>> = MutableStateFlow(listOf())
     val photos: StateFlow<List<Photo>> = _photos.map { list -> list.map(photoMapper::map)}
@@ -43,15 +43,10 @@ class BookmarksViewModel @Inject constructor(
 
     fun onDetails(id: Int) {
         val dbId = _photos.value[id].id
-        viewModelScope.launch {
-            _navigationEvent.emit(
-                DetailsScreenDestination(
-                    DetailsScreenNavArgs(
-                        photoId = dbId,
-                        storageOnlyProvider = true
-                    )
-                )
-            )
-        }
+        viewModelScope.launch { _navigationEvent.emit(detailsScreenCommand(photoId = dbId)) }
+    }
+
+    private fun detailsScreenCommand(photoId: Int): NavigatorCommand = { navigator ->
+        navigator.navigate(DetailsScreenDestination(DetailsScreenNavArgs(photoId = photoId, storageOnlyProvider = true)))
     }
 }

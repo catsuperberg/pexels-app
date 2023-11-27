@@ -53,9 +53,7 @@ fun HomeScreen(
             }
     }
 
-    LaunchedEffect(true) {
-        viewModel.navigationEvent.collect(navigator::navigate)
-    }
+    LaunchedEffect(true) { viewModel.navigationEvent.collect { command -> command(navigator)} }
 
     Column(modifier = modifier.fillMaxSize()) {
         HomeScreenHeader(loading, viewModel)

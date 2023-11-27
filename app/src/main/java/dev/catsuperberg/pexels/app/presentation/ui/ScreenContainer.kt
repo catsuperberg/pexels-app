@@ -19,7 +19,7 @@ fun ScreenContainer() {
     Scaffold(
         bottomBar = {
             if (destination.value?.shouldShowScaffoldElements == true) {
-                BottomBar(navController, destination.value)
+                BottomBar(navController)
             }
         }
     ) { innerPadding ->

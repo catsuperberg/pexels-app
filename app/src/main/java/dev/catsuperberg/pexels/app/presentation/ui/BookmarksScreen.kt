@@ -32,9 +32,7 @@ fun BookmarksScreen(
 ) {
     val photos = viewModel.photos.collectAsState()
 
-    LaunchedEffect(true) {
-        viewModel.navigationEvent.collect(navigator::navigate)
-    }
+    LaunchedEffect(true) { viewModel.navigationEvent.collect { command -> command(navigator)} }
 
     Column(modifier = modifier) {
         TextHeader(headerText = stringResource(R.string.bookmarks))

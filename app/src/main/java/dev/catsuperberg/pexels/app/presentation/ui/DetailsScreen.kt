@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,7 +39,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import dev.catsuperberg.pexels.app.R
-import dev.catsuperberg.pexels.app.presentation.ui.component.RoundedLinearProgressIndicator
+import dev.catsuperberg.pexels.app.presentation.ui.component.ExploreStub
 import dev.catsuperberg.pexels.app.presentation.ui.component.UpButtonHeader
 import dev.catsuperberg.pexels.app.presentation.view.model.DetailsScreenNavArgs
 import dev.catsuperberg.pexels.app.presentation.view.model.DetailsViewModel
@@ -54,39 +55,30 @@ fun DetailsScreen(
     val bookmarked = viewModel.bookmarked.collectAsState()
     val photo = viewModel.photo.collectAsState()
     val loading = viewModel.loading.collectAsState()
+    val photoNotFound = viewModel.photoNotFound.collectAsState()
+
+    LaunchedEffect(true) { viewModel.navigationEvent.collect { command -> command(navigator)} }
 
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
         modifier = modifier.fillMaxSize()
     ) {
-        Box {
-            UpButtonHeader(headerText = photo.value?.author ?: "") { navigator.popBackStack() }
-            if (loading.value)
-                RoundedLinearProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                        .height(4.dp)
-                        .align(Alignment.BottomCenter)
-                )
+        UpButtonHeader(headerText = photo.value?.author ?: "", loading = loading) { navigator.popBackStack() }
+
+        if (photoNotFound.value) {
+            ExploreStub(Modifier.fillMaxSize(), "Image not found", viewModel::onExplore)
+            return
         }
         photo.value?.also {
-            Box(
-                contentAlignment = Alignment.TopCenter,
-                modifier = Modifier
-                    .padding(horizontal = 24.dp, vertical = 12.dp)
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) {
-                DetailsPhotoCard(
-                    url = it.url,
-                    aspectRation = it.aspectRatio,
-                    description = it.description,
-                    onFinished = viewModel::onLoadFinished,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                )
-            }
+            DetailsPhotoCard(
+                url = it.url,
+                aspectRation = it.aspectRatio,
+                description = it.description,
+                onFinished = viewModel::onLoadFinished,
+                roundedCornerShape = RoundedCornerShape(16.dp),
+                modifier = Modifier.weight(1f)
+
+            )
             DetailsButtons(
                 bookmarked = bookmarked.value,
                 onDownload = viewModel::onDownload,
@@ -102,9 +94,15 @@ private fun DetailsPhotoCard(
     url: String,
     aspectRation: Float,
     onFinished: (() -> Unit),
+    roundedCornerShape: RoundedCornerShape,
     description: String? = null,
 ) {
-    Box(modifier = modifier) {
+    Box(
+        contentAlignment = Alignment.TopCenter,
+        modifier = modifier
+            .padding(start = 24.dp, end = 24.dp, bottom = 12.dp)
+            .fillMaxWidth()
+    ) {
         SubcomposeAsyncImage(
             model = url,
             onSuccess = { onFinished() },
@@ -112,6 +110,7 @@ private fun DetailsPhotoCard(
             contentDescription = description ?: stringResource(R.string.default_photo_description),
             contentScale = ContentScale.FillWidth,
             modifier = Modifier
+                .clip(roundedCornerShape)
                 .aspectRatio(aspectRation)
         )
     }

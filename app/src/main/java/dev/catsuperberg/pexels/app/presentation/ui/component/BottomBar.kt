@@ -13,19 +13,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.ramcosta.composedestinations.navigation.navigate
-import com.ramcosta.composedestinations.spec.DirectionDestinationSpec
 import dev.catsuperberg.pexels.app.presentation.navigation.BottomBarDestination
-import dev.catsuperberg.pexels.app.presentation.ui.destinations.Destination
+import dev.catsuperberg.pexels.app.presentation.ui.appCurrentDestinationAsState
 import dev.catsuperberg.pexels.app.presentation.ui.extension.shadow
 import dev.catsuperberg.pexels.app.presentation.ui.theme.extendedColors
 
 @Composable
 fun BottomBar(
     navController: NavController,
-    currentDestination: Destination?,
     modifier: Modifier = Modifier
 ) {
+    val currentDestination = navController.appCurrentDestinationAsState()
+
     Box(
         modifier = modifier
             .shadow(
@@ -42,12 +41,17 @@ fun BottomBar(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             BottomBarDestination.values().forEach { destination ->
+                val destinationInBackStack = navController.currentBackStack.value
+                        .map { it.destination.route }
+                        .contains(destination.direction.route)
+                val isCurrentDestination = currentDestination.value?.let { it != destination.direction } ?: false
                 Button(
-                    enabled = currentDestination?.let { it != destination.direction } ?: false,
+                    enabled = isCurrentDestination,
                     onClick = {
-                        navController.navigate(destination.direction as DirectionDestinationSpec) {
-                            popUpTo(destination.direction.route) { inclusive = true }
-                        }
+                        if (destinationInBackStack)
+                            navController.popBackStack(destination.direction.route, inclusive = false, saveState = true)
+                        else
+                            navController.navigate(destination.direction.route) { restoreState = true }
                     }
                 ) {
                     Text(text = destination.buttonText)
