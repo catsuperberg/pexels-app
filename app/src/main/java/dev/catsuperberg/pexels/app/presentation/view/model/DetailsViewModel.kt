@@ -55,12 +55,9 @@ class DetailsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     private val _bookmarked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val bookmarked: StateFlow<Boolean> = _bookmarked.asStateFlow()
-
     private val _loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading.asStateFlow()
-
     private val _photoNotFound: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val photoNotFound: StateFlow<Boolean> = _photoNotFound.asStateFlow()
 
     private val _snackBarMessage: MutableSharedFlow<StringResource> = MutableSharedFlow(1)
     val snackBarMessage: SharedFlow<StringResource> = _snackBarMessage.asSharedFlow()
@@ -82,7 +79,7 @@ class DetailsViewModel @Inject constructor(
                 }
         }
 
-
+        viewModelScope.launch { _photoNotFound.collect { if (it) _photo.value = null } }
         viewModelScope.launch { refreshBookmarked() }
     }
 
@@ -104,6 +101,7 @@ class DetailsViewModel @Inject constructor(
 
     fun onImageLoadFailed() {
         _loading.value = false
+        _photoNotFound.value = true
         Log.e(this::class.toString(), "Image loader couldn't download an image from ${photo.value?.url}")
         viewModelScope.launch { _snackBarMessage.emit(StringResource(R.string.image_loader_photo_download_error)) }
     }

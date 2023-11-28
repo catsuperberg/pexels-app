@@ -1,15 +1,18 @@
 package dev.catsuperberg.pexels.app.presentation.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
@@ -33,14 +36,40 @@ fun BookmarksScreen(
     viewModel: BookmarksViewModel = hiltViewModel(),
 ) {
     val photos = viewModel.photos.collectAsState()
+    val loading = viewModel.loading.collectAsState()
+    val reachedEmptyPage = viewModel.reachedEmptyPage.collectAsState()
+    val listState = rememberLazyStaggeredGridState()
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .collect { firstVisibleIndex ->
+                if (!loading.value && !reachedEmptyPage.value) {
+                    val twoScreensOffset = listState.layoutInfo.visibleItemsInfo.size * 2
+                    val targetIndex = listState.layoutInfo.totalItemsCount - twoScreensOffset
+                    if (targetIndex < firstVisibleIndex && twoScreensOffset != 0) {
+                        Log.e("Pagination", "List needs pages. Loading state: ${loading.value}")
+                        viewModel.onRequestMorePhotos()
+                    }
+                }
+            }
+    }
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.canScrollForward }.collect {
+            if (!it && !loading.value) {
+                Log.w("Pagination", "Can't scroll anymore")
+                viewModel.onRequestMorePhotos()
+            }
+        }
+    }
 
     LaunchedEffect(true) { viewModel.navigationEvent.collect { command -> command(navigator)} }
 
     Column(modifier = modifier.fillMaxSize()) {
-        TextHeader(headerText = stringResource(R.string.bookmarks))
+        TextHeader(loading = loading, headerText = stringResource(R.string.bookmarks))
 
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
+            state = listState,
             verticalItemSpacing = 12.dp,
             horizontalArrangement = Arrangement.spacedBy(17.dp),
             modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 12.dp)

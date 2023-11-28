@@ -33,9 +33,6 @@ class HomeViewModel @Inject constructor(
     private val _navigationEvent: MutableSharedFlow<NavigatorCommand> = MutableSharedFlow()
     val navigationEvent: SharedFlow<NavigatorCommand> = _navigationEvent.asSharedFlow()
 
-    private val collectionCount = 7
-    private val paginationCount = 30
-
     private val _searchPrompt: MutableStateFlow<String> = MutableStateFlow("")
     val searchPrompt: StateFlow<String> = _searchPrompt.asStateFlow()
     private val _searchClearAvailable: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -47,10 +44,11 @@ class HomeViewModel @Inject constructor(
     private val _photos: MutableStateFlow<List<PexelsPhoto>> = MutableStateFlow(listOf())
     val photos: StateFlow<List<Photo>> = _photos.map { list -> list.map(photoMapper::map)}
         .stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
-
     private val _loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading.asStateFlow()
 
+    private val collectionCount = 7
+    private val paginationCount = 30
     private var pagesLoaded = 0
     private var collectionRequestActive = false
     private var paginationQueue: JobQueue = JobQueue(

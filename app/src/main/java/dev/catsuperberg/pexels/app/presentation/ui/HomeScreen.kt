@@ -41,8 +41,8 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val photos = viewModel.photos.collectAsState()
-    val listState = rememberLazyStaggeredGridState()
     val loading = viewModel.loading.collectAsState()
+    val listState = rememberLazyStaggeredGridState()
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
@@ -57,7 +57,7 @@ fun HomeScreen(
     LaunchedEffect(true) { viewModel.navigationEvent.collect { command -> command(navigator)} }
 
     Column(modifier = modifier.fillMaxSize()) {
-        HomeScreenHeader(loading, viewModel)
+        HomeScreenHeader(loading = loading, viewModel = viewModel)
 
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
@@ -82,12 +82,12 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeScreenHeader(loading: State<Boolean>, viewModel: HomeViewModel) {
+private fun HomeScreenHeader(modifier: Modifier = Modifier, loading: State<Boolean>, viewModel: HomeViewModel) {
     val horizontalPadding = 24.dp
     Box {
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.padding(vertical = 12.dp)
+            modifier = modifier.padding(vertical = 12.dp)
         ) {
             SearchBar(modifier = Modifier.padding(vertical = 12.dp, horizontal = horizontalPadding))
             FeaturedCollections(contentPadding = PaddingValues(horizontal = horizontalPadding),viewModel = viewModel)

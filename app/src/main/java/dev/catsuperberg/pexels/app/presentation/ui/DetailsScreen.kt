@@ -57,7 +57,6 @@ fun DetailsScreen(
     val bookmarked = viewModel.bookmarked.collectAsState()
     val photo = viewModel.photo.collectAsState()
     val loading = viewModel.loading.collectAsState()
-    val photoNotFound = viewModel.photoNotFound.collectAsState()
 
     LaunchedEffect(true) { viewModel.navigationEvent.collect { command -> command(navigator)} }
 
@@ -68,10 +67,6 @@ fun DetailsScreen(
         ) {
             UpButtonHeader(headerText = photo.value?.author ?: "", loading = loading) { navigator.popBackStack() }
 
-            if (photoNotFound.value) {
-                ExploreStub(Modifier.fillMaxSize(), stringResource(R.string.image_not_found), viewModel::onExplore)
-                return@SnackbarScaffold
-            }
             photo.value?.also {
                 DetailsPhotoCard(
                     url = it.url,
@@ -88,7 +83,7 @@ fun DetailsScreen(
                     onDownload = viewModel::onDownload,
                     onBookmarkedChange = viewModel::onBookmarkedChange
                 )
-            }
+            } ?: ExploreStub(Modifier.fillMaxSize(), stringResource(R.string.image_not_found), viewModel::onExplore)
         }
     }
 }
