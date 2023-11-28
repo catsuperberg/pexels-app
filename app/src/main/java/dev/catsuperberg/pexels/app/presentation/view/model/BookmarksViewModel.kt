@@ -12,14 +12,12 @@ import dev.catsuperberg.pexels.app.presentation.ui.destinations.DetailsScreenDes
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.HomeScreenDestination
 import dev.catsuperberg.pexels.app.presentation.view.model.model.IPhotoMapper
 import dev.catsuperberg.pexels.app.presentation.view.model.model.Photo
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -36,16 +34,16 @@ class BookmarksViewModel @Inject constructor(
     private val _photos: MutableStateFlow<List<PexelsPhoto>> = MutableStateFlow(listOf())
     val photos: StateFlow<List<Photo>> = _photos.map { list -> list.map(photoMapper::map)}
         .stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
-    private val _loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val loading: StateFlow<Boolean> = _loading.asStateFlow()
 
     private val pagination = Pagination(
+        scope = viewModelScope,
         pageSize = 30,
         itemRequest = { page, perPage -> photoProvider.getPhotos(page, perPage) },
         appendAction = { photos -> _photos.value = (_photos.value + photos).distinctBy {it.id } }
     )
-    val reachedEmptyPage: StateFlow<Boolean> = pagination.reachedEmptyPage
-    private var requestJob: Job? = null
+
+    val pageRequestAvailable: StateFlow<Boolean> = pagination.requestAvailable
+    val loading: StateFlow<Boolean> = pagination.requestActive
 
     init {
         onRequestMorePhotos()
@@ -61,19 +59,10 @@ class BookmarksViewModel @Inject constructor(
     }
 
     fun onRequestMorePhotos() {
-        if (updateLoadingState())
-            return
-
-        requestJob = viewModelScope.launch {
-            updateLoadingState()
+        viewModelScope.launch {
             pagination.requestNextPage()
                 .onFailure { Log.e(this::class.toString(), it.toString()) }
-        }.apply { invokeOnCompletion { updateLoadingState() } }
-    }
-
-    private fun updateLoadingState(): Boolean {
-        _loading.value = requestJob?.isCompleted?.not() ?: false
-        return _loading.value
+        }
     }
 
     private fun detailsScreenCommand(photoId: Int): NavigatorCommand = { navigator ->

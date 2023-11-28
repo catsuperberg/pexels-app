@@ -39,13 +39,11 @@ fun BookmarksScreen(
 ) {
     val photos = viewModel.photos.collectAsState()
     val loading = viewModel.loading.collectAsState()
-    val reachedEmptyPage = viewModel.reachedEmptyPage.collectAsState()
     val listState = rememberLazyStaggeredGridState()
 
     val empty = remember { derivedStateOf { photos.value.isEmpty() } }
 
-    PaginationEffects(listState, loading, reachedEmptyPage, viewModel::onRequestMorePhotos)
-
+    PaginationEffects(listState, viewModel.pageRequestAvailable.collectAsState(), viewModel::onRequestMorePhotos)
     LaunchedEffect(true) { viewModel.navigationEvent.collect { command -> command(navigator)} }
 
     Column(modifier = modifier.fillMaxSize()) {

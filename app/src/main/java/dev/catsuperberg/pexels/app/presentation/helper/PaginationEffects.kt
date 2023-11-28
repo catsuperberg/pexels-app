@@ -9,14 +9,13 @@ import androidx.compose.runtime.snapshotFlow
 @Composable
 fun PaginationEffects(
     listState: LazyStaggeredGridState,
-    loading: State<Boolean>,
-    reachedEmptyPage: State<Boolean>,
+    pageRequestAvailable: State<Boolean>,
     onRequestMore: () -> Unit
 ) {
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
             .collect { firstVisibleIndex ->
-                if (!loading.value && !reachedEmptyPage.value) {
+                if (pageRequestAvailable.value) {
                     val twoScreensOffset = listState.layoutInfo.visibleItemsInfo.size * 2
                     val targetIndex = listState.layoutInfo.totalItemsCount - twoScreensOffset
                     if (targetIndex < firstVisibleIndex && twoScreensOffset != 0)
@@ -25,9 +24,6 @@ fun PaginationEffects(
             }
     }
     LaunchedEffect(listState) {
-        snapshotFlow { listState.canScrollForward }.collect {
-            if (!it && !loading.value)
-                onRequestMore()
-        }
+        snapshotFlow { listState.canScrollForward }.collect { if (!it) onRequestMore() }
     }
 }
