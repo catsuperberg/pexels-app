@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.AndroidEntryPoint
 import dev.catsuperberg.pexels.app.presentation.ui.ScreenContainer
 import dev.catsuperberg.pexels.app.presentation.ui.theme.PexelsAppTheme
@@ -15,13 +16,14 @@ import dev.catsuperberg.pexels.app.presentation.ui.theme.PexelsAppTheme
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val splashScreen = installSplashScreen()
         setContent {
             PexelsAppTheme(dynamicColor = false) {
                 Surface(
                     color = MaterialTheme.colorScheme.background,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    ScreenContainer()
+                    ScreenContainer(splashScreen)
                 }
             }
         }

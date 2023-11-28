@@ -4,17 +4,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen
 import androidx.navigation.compose.rememberNavController
 import com.ramcosta.composedestinations.DestinationsNavHost
+import com.ramcosta.composedestinations.navigation.dependency
 import dev.catsuperberg.pexels.app.presentation.ui.component.BottomBar
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.Destination
+import dev.catsuperberg.pexels.app.presentation.ui.destinations.HomeScreenDestination
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScreenContainer() {
+fun ScreenContainer(splashScreen: SplashScreen) {
     val navController = rememberNavController()
     val destination = navController.appCurrentDestinationAsState()
+    val appReady = remember { mutableStateOf(false) }
+    splashScreen.setKeepOnScreenCondition { appReady.value.not() }
 
     Scaffold(
         bottomBar = {
@@ -26,6 +33,7 @@ fun ScreenContainer() {
         DestinationsNavHost(
             navGraph = NavGraphs.root,
             navController = navController,
+            dependenciesContainerBuilder = { dependency(HomeScreenDestination) { appReady } },
             modifier = Modifier.padding(innerPadding)
         )
     }

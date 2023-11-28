@@ -42,11 +42,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
     buildFeatures {
         compose = true
@@ -81,6 +81,7 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.0")
     implementation("joda-time:joda-time:2.12.5")
     implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("androidx.core:core-splashscreen:1.1.0-alpha02")
     annotationProcessor("androidx.room:room-compiler:2.6.0")
     ksp("io.github.raamcosta.compose-destinations:ksp:1.9.54")
     ksp("com.google.dagger:dagger-compiler:2.48.1")
