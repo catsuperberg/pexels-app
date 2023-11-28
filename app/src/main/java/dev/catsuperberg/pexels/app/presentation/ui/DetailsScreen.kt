@@ -168,7 +168,7 @@ private fun DetailsButtons(
             }
         }
 
-        val icon = if (bookmarked) R.drawable.is_bookmark_filled else R.drawable.is_bookmark_outline
+        val icon = if (bookmarked) R.drawable.ic_bookmark_filled else R.drawable.ic_bookmark_outline
         val contentColor = if (bookmarked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
 
         Button(
@@ -187,7 +187,7 @@ private fun DetailsButtons(
         ) {
             Icon(
                 painterResource(icon),
-                contentDescription = null,
+                contentDescription = stringResource(R.string.bookmark),
             )
         }
     }

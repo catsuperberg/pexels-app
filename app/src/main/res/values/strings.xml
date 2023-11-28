@@ -4,6 +4,7 @@
     <string name="search_input_field">Search input field</string>
     <string name="download">Download</string>
     <string name="default_photo_description">Photo</string>
+    <string name="bookmark">Bookmark</string>
     <string name="bookmarks">Bookmarks</string>
     <string name="explore">Explore</string>
     <string name="bookmark_error">Failed to updated bookmark</string>
@@ -12,4 +13,6 @@
     <string name="database_photo_download_error">Failed to restore saved photo information</string>
     <string name="image_loader_photo_download_error">Failed loading image file</string>
     <string name="image_not_found">Image not found</string>
+    <string name="home_button">home button</string>
+    <string name="bookmarks_button">bookmarks button</string>
 </resources>
