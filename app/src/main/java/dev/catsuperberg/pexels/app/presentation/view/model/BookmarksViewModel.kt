@@ -9,6 +9,7 @@ import dev.catsuperberg.pexels.app.domain.usecase.IBookmarkedPhotoProvider
 import dev.catsuperberg.pexels.app.presentation.helper.Pagination
 import dev.catsuperberg.pexels.app.presentation.navigation.NavigatorCommand
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.DetailsScreenDestination
+import dev.catsuperberg.pexels.app.presentation.ui.destinations.HomeScreenDestination
 import dev.catsuperberg.pexels.app.presentation.view.model.model.IPhotoMapper
 import dev.catsuperberg.pexels.app.presentation.view.model.model.Photo
 import kotlinx.coroutines.Job
@@ -44,7 +45,6 @@ class BookmarksViewModel @Inject constructor(
         appendAction = { photos -> _photos.value = (_photos.value + photos).distinctBy {it.id } }
     )
     val reachedEmptyPage: StateFlow<Boolean> = pagination.reachedEmptyPage
-
     private var requestJob: Job? = null
 
     init {
@@ -54,6 +54,10 @@ class BookmarksViewModel @Inject constructor(
     fun onDetails(id: Int) {
         val dbId = _photos.value[id].id
         viewModelScope.launch { _navigationEvent.emit(detailsScreenCommand(photoId = dbId)) }
+    }
+
+    fun onExplore() {
+        viewModelScope.launch { _navigationEvent.emit(exploreCommand()) }
     }
 
     fun onRequestMorePhotos() {
@@ -74,5 +78,9 @@ class BookmarksViewModel @Inject constructor(
 
     private fun detailsScreenCommand(photoId: Int): NavigatorCommand = { navigator ->
         navigator.navigate(DetailsScreenDestination(DetailsScreenNavArgs(photoId = photoId, storageOnlyProvider = true)))
+    }
+
+    private fun exploreCommand(): NavigatorCommand = { navigator ->
+        navigator.popBackStack(HomeScreenDestination.route, false)
     }
 }

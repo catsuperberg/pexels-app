@@ -15,4 +15,5 @@
     <string name="image_not_found">Image not found</string>
     <string name="home_button">home button</string>
     <string name="bookmarks_button">bookmarks button</string>
+    <string name="no_saved_images">You haven\'t saved anything yet</string>
 </resources>
