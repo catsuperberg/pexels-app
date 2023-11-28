@@ -42,11 +42,12 @@ import dev.catsuperberg.pexels.app.R
 import dev.catsuperberg.pexels.app.presentation.ui.component.ExploreStub
 import dev.catsuperberg.pexels.app.presentation.ui.component.SnackbarScaffold
 import dev.catsuperberg.pexels.app.presentation.ui.component.UpButtonHeader
+import dev.catsuperberg.pexels.app.presentation.ui.transition.DetailsTransition
 import dev.catsuperberg.pexels.app.presentation.view.model.DetailsScreenNavArgs
 import dev.catsuperberg.pexels.app.presentation.view.model.DetailsViewModel
 
 @RootNavGraph
-@Destination (navArgsDelegate = DetailsScreenNavArgs::class)
+@Destination(navArgsDelegate = DetailsScreenNavArgs::class, style = DetailsTransition::class)
 @Composable
 fun DetailsScreen(
     modifier: Modifier = Modifier,

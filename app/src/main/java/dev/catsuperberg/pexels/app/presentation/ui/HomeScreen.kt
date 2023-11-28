@@ -29,10 +29,11 @@ import dev.catsuperberg.pexels.app.presentation.ui.component.FeaturedCollections
 import dev.catsuperberg.pexels.app.presentation.ui.component.PhotoCard
 import dev.catsuperberg.pexels.app.presentation.ui.component.RoundedLinearProgressIndicator
 import dev.catsuperberg.pexels.app.presentation.ui.component.SearchBar
+import dev.catsuperberg.pexels.app.presentation.ui.transition.FromLeftHorizontalTransition
 import dev.catsuperberg.pexels.app.presentation.view.model.HomeViewModel
 
 @RootNavGraph(start = true)
-@Destination
+@Destination(style = FromLeftHorizontalTransition::class)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,

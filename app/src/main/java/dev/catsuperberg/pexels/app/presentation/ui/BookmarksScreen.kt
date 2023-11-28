@@ -2,6 +2,7 @@ package dev.catsuperberg.pexels.app.presentation.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -20,10 +21,11 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import dev.catsuperberg.pexels.app.R
 import dev.catsuperberg.pexels.app.presentation.ui.component.PhotoCard
 import dev.catsuperberg.pexels.app.presentation.ui.component.TextHeader
+import dev.catsuperberg.pexels.app.presentation.ui.transition.FromRightHorizontalTransition
 import dev.catsuperberg.pexels.app.presentation.view.model.BookmarksViewModel
 
 @RootNavGraph
-@Destination
+@Destination(style = FromRightHorizontalTransition::class)
 @Composable
 fun BookmarksScreen(
     modifier: Modifier = Modifier,
@@ -34,7 +36,7 @@ fun BookmarksScreen(
 
     LaunchedEffect(true) { viewModel.navigationEvent.collect { command -> command(navigator)} }
 
-    Column(modifier = modifier) {
+    Column(modifier = modifier.fillMaxSize()) {
         TextHeader(headerText = stringResource(R.string.bookmarks))
 
         LazyVerticalStaggeredGrid(
