@@ -26,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import dev.catsuperberg.pexels.app.presentation.helper.PaginationEffects
 import dev.catsuperberg.pexels.app.presentation.ui.component.FeaturedCollections
 import dev.catsuperberg.pexels.app.presentation.ui.component.PhotoCard
 import dev.catsuperberg.pexels.app.presentation.ui.component.RoundedLinearProgressIndicator
@@ -46,15 +47,7 @@ fun HomeScreen(
     val loading = viewModel.loading.collectAsState()
     val listState = rememberLazyStaggeredGridState()
 
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.firstVisibleItemIndex }
-            .collect { firstVisibleIndex ->
-                val twoScreensOffset = listState.layoutInfo.visibleItemsInfo.size * 2
-                val targetIndex = listState.layoutInfo.totalItemsCount - twoScreensOffset
-                if (targetIndex < firstVisibleIndex && twoScreensOffset != 0)
-                    viewModel.onLoadMore()
-            }
-    }
+    PaginationEffects(listState, viewModel.pageRequestAvailable.collectAsState(), viewModel::onRequestMorePhotos)
     LaunchedEffect(true) { viewModel.navigationEvent.collect { command -> command(navigator)} }
     LaunchedEffect(true) {
         viewModel.loading.collect { if (!it && screenReady.value.not()) screenReady.value = true }

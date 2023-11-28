@@ -4,10 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.catsuperberg.pexels.app.domain.async.JobQueue
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
 import dev.catsuperberg.pexels.app.domain.usecase.ICollectionProvider
 import dev.catsuperberg.pexels.app.domain.usecase.IPhotoProvider
+import dev.catsuperberg.pexels.app.presentation.helper.Pagination
 import dev.catsuperberg.pexels.app.presentation.navigation.NavigatorCommand
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.DetailsScreenDestination
 import dev.catsuperberg.pexels.app.presentation.view.model.model.IPhotoMapper
@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -44,18 +45,28 @@ class HomeViewModel @Inject constructor(
     private val _photos: MutableStateFlow<List<PexelsPhoto>> = MutableStateFlow(listOf())
     val photos: StateFlow<List<Photo>> = _photos.map { list -> list.map(photoMapper::map)}
         .stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
-    private val _loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val loading: StateFlow<Boolean> = _loading.asStateFlow()
+
+
+//    private val _loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+//    val loading: StateFlow<Boolean> = _loading.asStateFlow()
+
 
     private val collectionCount = 7
-    private val paginationCount = 30
-    private var pagesLoaded = 0
-    private var collectionRequestActive = false
-    private var paginationQueue: JobQueue = JobQueue(
-        viewModelScope,
-        { updateLoadingState() },
-        { updateLoadingState() }
+    private var collectionRequestActive: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
+    private val pagination = Pagination(
+        scope = viewModelScope,
+        pageSize = 30,
+        itemRequest = { page, perPage -> photoProvider.getCurated(page, perPage) },
+        appendAction = { photos -> _photos.value = (_photos.value + photos).distinctBy {it.id } }
     )
+
+    val pageRequestAvailable: StateFlow<Boolean> = pagination.requestAvailable
+    val loading: StateFlow<Boolean> =
+        pagination.requestActive.combine(collectionRequestActive) { paginationActive, collectionActive ->
+            paginationActive || collectionActive
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
 
     init {
         viewModelScope.launch {
@@ -66,17 +77,16 @@ class HomeViewModel @Inject constructor(
             toggleCollectionRequestActive(false)
         }
 
-        onLoadMore()
+        onRequestMorePhotos()
     }
 
     private fun toggleCollectionRequestActive(value: Boolean) {
-        collectionRequestActive = value
-        updateLoadingState()
+        collectionRequestActive.value = value
     }
 
-    private fun updateLoadingState() {
-        _loading.value = collectionRequestActive || paginationQueue.isEmpty.not()
-    }
+//    private fun updateLoadingState() {
+//        _loading.value = collectionRequestActive || paginationQueue.isEmpty.not()
+//    }
 
     fun onSearchChange(value: String) {
         _searchPrompt.value = value
@@ -90,14 +100,6 @@ class HomeViewModel @Inject constructor(
         TODO()
     }
 
-    fun onLoadMore() {
-        paginationQueue.submit {
-            photoProvider.getCurated(++pagesLoaded, paginationCount)
-                .onSuccess { values -> _photos.value = (_photos.value + values).distinct() }
-                .onFailure { Log.e("E", it.toString()) }
-        }
-    }
-
     fun onCollectionSelected(index: Int) {
         _selectedCollection.value = index
     }
@@ -105,6 +107,13 @@ class HomeViewModel @Inject constructor(
     fun onDetails(id: Int) {
         val dbId = _photos.value[id].id
         viewModelScope.launch { _navigationEvent.emit(detailsScreenCommand(photoId = dbId)) }
+    }
+
+    fun onRequestMorePhotos() {
+        viewModelScope.launch {
+            pagination.requestNextPage()
+                .onFailure { Log.e(this::class.toString(), it.toString()) }
+        }
     }
 
     private fun detailsScreenCommand(photoId: Int): NavigatorCommand = { navigator ->

@@ -17,9 +17,9 @@ class Pagination<T, U: Collection<T>>(
     private val appendAction: (items: U) -> Unit
 ) {
     private val _requestActive: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    private val _reachedEmptyPage: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private val reachedEmptyPage: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val requestActive: StateFlow<Boolean> = _requestActive.asStateFlow()
-    val requestAvailable: StateFlow<Boolean> = _requestActive.combine(_reachedEmptyPage) { active, reachedEmpty ->
+    val requestAvailable: StateFlow<Boolean> = _requestActive.combine(reachedEmptyPage) { active, reachedEmpty ->
         (active || reachedEmpty).not()
     }.stateIn(scope, SharingStarted.Eagerly, true)
 
@@ -35,12 +35,12 @@ class Pagination<T, U: Collection<T>>(
             .onSuccess { items ->
                 if (items.isEmpty()) {
                     Log.d("Pagination", "Empty page")
-                    _reachedEmptyPage.value = true
+                    reachedEmptyPage.value = true
                     return@onSuccess
                 }
 
                 appendAction(items)
-                _reachedEmptyPage.value = false
+                reachedEmptyPage.value = false
                 pagesLoaded++
                 Log.d("Pagination", "Added page")
             }
