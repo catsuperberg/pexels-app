@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
 import dev.catsuperberg.pexels.app.domain.usecase.IBookmarkedPhotoProvider
+import dev.catsuperberg.pexels.app.presentation.helper.Pagination
 import dev.catsuperberg.pexels.app.presentation.navigation.NavigatorCommand
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.DetailsScreenDestination
 import dev.catsuperberg.pexels.app.presentation.view.model.model.IPhotoMapper
@@ -36,11 +37,14 @@ class BookmarksViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
     private val _loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading.asStateFlow()
-    private val _reachedEmptyPage: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val reachedEmptyPage: StateFlow<Boolean> = _reachedEmptyPage.asStateFlow()
 
-    private val pageSize = 30
-    private var pagesLoaded = 0
+    private val pagination = Pagination(
+        pageSize = 30,
+        itemRequest = { page, perPage -> photoProvider.getPhotos(page, perPage) },
+        appendAction = { photos -> _photos.value = (_photos.value + photos).distinctBy {it.id } }
+    )
+    val reachedEmptyPage: StateFlow<Boolean> = pagination.reachedEmptyPage
+
     private var requestJob: Job? = null
 
     init {
@@ -53,25 +57,13 @@ class BookmarksViewModel @Inject constructor(
     }
 
     fun onRequestMorePhotos() {
-        Log.d("Pagination", "Requesting more photos")
         if (updateLoadingState())
             return
 
         requestJob = viewModelScope.launch {
-            photoProvider.getPhotos(pagesLoaded + 1, pageSize)
-                .onSuccess { values ->
-                    if (values.isEmpty()) {
-                        Log.d("Pagination", "Empty page")
-                        _reachedEmptyPage.value = true
-                        return@launch
-                    }
-
-                    _reachedEmptyPage.value = false
-                    _photos.value = (_photos.value + values).distinctBy {it.id }
-                    pagesLoaded++
-                    Log.d("Pagination", "Added page")
-                }
-                .onFailure { Log.d("Pagination", it.toString()) }
+            updateLoadingState()
+            pagination.requestNextPage()
+                .onFailure { Log.e(this::class.toString(), it.toString()) }
         }.apply { invokeOnCompletion { updateLoadingState() } }
     }
 

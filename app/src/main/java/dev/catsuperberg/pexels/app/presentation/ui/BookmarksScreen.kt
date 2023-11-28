@@ -1,6 +1,5 @@
 package dev.catsuperberg.pexels.app.presentation.ui
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
@@ -22,6 +20,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import dev.catsuperberg.pexels.app.R
+import dev.catsuperberg.pexels.app.presentation.helper.PaginationEffects
 import dev.catsuperberg.pexels.app.presentation.ui.component.PhotoCard
 import dev.catsuperberg.pexels.app.presentation.ui.component.TextHeader
 import dev.catsuperberg.pexels.app.presentation.ui.transition.FromRightHorizontalTransition
@@ -40,27 +39,7 @@ fun BookmarksScreen(
     val reachedEmptyPage = viewModel.reachedEmptyPage.collectAsState()
     val listState = rememberLazyStaggeredGridState()
 
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.firstVisibleItemIndex }
-            .collect { firstVisibleIndex ->
-                if (!loading.value && !reachedEmptyPage.value) {
-                    val twoScreensOffset = listState.layoutInfo.visibleItemsInfo.size * 2
-                    val targetIndex = listState.layoutInfo.totalItemsCount - twoScreensOffset
-                    if (targetIndex < firstVisibleIndex && twoScreensOffset != 0) {
-                        Log.e("Pagination", "List needs pages. Loading state: ${loading.value}")
-                        viewModel.onRequestMorePhotos()
-                    }
-                }
-            }
-    }
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.canScrollForward }.collect {
-            if (!it && !loading.value) {
-                Log.w("Pagination", "Can't scroll anymore")
-                viewModel.onRequestMorePhotos()
-            }
-        }
-    }
+    PaginationEffects(listState, loading, reachedEmptyPage, viewModel::onRequestMorePhotos)
 
     LaunchedEffect(true) { viewModel.navigationEvent.collect { command -> command(navigator)} }
 
