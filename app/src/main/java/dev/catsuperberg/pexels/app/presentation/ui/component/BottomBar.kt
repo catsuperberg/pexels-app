@@ -119,9 +119,7 @@ private fun AnimatedSelector(currentDestination: State<Destination?>) {
         label = "Selector position"
     )
 
-    Canvas(modifier = Modifier
-        .fillMaxWidth()
-        .height(2.dp)) {
+    Canvas(modifier = Modifier.fillMaxWidth().height(2.dp)) {
         val buttonSize = size.width / buttonCount
         val start = position * buttonSize - (buttonSize / 2) - (selectorWidth / 2)
         val yOffset = size.height / 2

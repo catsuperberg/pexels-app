@@ -72,7 +72,7 @@ fun DetailsScreen(
     val photo = viewModel.photo.collectAsState()
     val loading = viewModel.loading.collectAsState()
 
-    LaunchedEffect(true) { viewModel.navigationEvent.collect { command -> command(navigator)} }
+    LaunchedEffect(true) { viewModel.navigationEvent.collect { command -> command(navigator) } }
 
     SnackbarScaffold(messageFlow = viewModel.snackBarMessage) { _ ->
         Column(
@@ -109,7 +109,6 @@ fun DetailsScreen(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun DetailsPhotoCard(
     modifier: Modifier = Modifier,
@@ -133,7 +132,7 @@ private fun DetailsPhotoCard(
                 awaitEachGesture {
                     awaitFirstDown()
                     do { val event: PointerEvent = awaitPointerEvent() } while (event.changes.any { it.pressed } )
-                    
+
                     // ACTION_UP after waiting fo pressed event to stop
                     offset.value = Offset.Zero
                     scale.floatValue = 1f

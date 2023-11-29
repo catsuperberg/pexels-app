@@ -82,7 +82,8 @@ class HomeViewModel @Inject constructor(
         isResultEmpty = { container -> container.data.isEmpty() },
         onClear = { _photos.value = listOf() }
     )
-    val pageRequestAvailable: StateFlow<Boolean> = pagination.requestAvailable
+    val pageRequestAvailable: StateFlow<Boolean>
+        get() = pagination.requestAvailable
     val loading: StateFlow<Boolean> =
         pagination.requestActive.combine(collectionRequestActive) { paginationActive, collectionActive ->
             paginationActive || collectionActive

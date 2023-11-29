@@ -1,3 +1,9 @@
+@file:Suppress("ConstPropertyName", "ConstPropertyName", "ConstPropertyName", "ConstPropertyName", "ConstPropertyName",
+    "ConstPropertyName", "ConstPropertyName", "ConstPropertyName", "ConstPropertyName", "PrivatePropertyName",
+    "PrivatePropertyName", "PrivatePropertyName", "PrivatePropertyName", "PrivatePropertyName", "PrivatePropertyName",
+    "PrivatePropertyName", "PrivatePropertyName", "PrivatePropertyName", "PrivatePropertyName", "PrivatePropertyName"
+)
+
 package dev.catsuperberg.pexels.app.presentation.ui.component
 
 import androidx.compose.animation.core.CubicBezierEasing
@@ -20,6 +26,9 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 
+@Suppress("ConstPropertyName", "ConstPropertyName", "ConstPropertyName", "ConstPropertyName", "ConstPropertyName",
+    "ConstPropertyName", "ConstPropertyName", "ConstPropertyName", "ConstPropertyName"
+)
 private const val LinearAnimationDuration = 1800
 
 private const val FirstLineHeadDuration = 750
@@ -46,7 +55,7 @@ fun RoundedLinearProgressIndicator(
     color: Color = MaterialTheme.colorScheme.primary,
     backgroundColor: Color = MaterialTheme.colorScheme.surface
 ) {
-    val infiniteTransition = rememberInfiniteTransition()
+    val infiniteTransition = rememberInfiniteTransition(label = "infinite load transition")
     val firstLineHead by infiniteTransition.animateFloat(
         0f,
         1f,
@@ -56,7 +65,7 @@ fun RoundedLinearProgressIndicator(
                 0f at FirstLineHeadDelay with FirstLineHeadEasing
                 1f at FirstLineHeadDuration + FirstLineHeadDelay
             }
-        )
+        ), label = "firstLineHead"
     )
     val firstLineTail by infiniteTransition.animateFloat(
         0f,
@@ -67,7 +76,7 @@ fun RoundedLinearProgressIndicator(
                 0f at FirstLineTailDelay with FirstLineTailEasing
                 1f at FirstLineTailDuration + FirstLineTailDelay
             }
-        )
+        ), label = "firstLineTail"
     )
     val secondLineHead by infiniteTransition.animateFloat(
         0f,
@@ -78,7 +87,7 @@ fun RoundedLinearProgressIndicator(
                 0f at SecondLineHeadDelay with SecondLineHeadEasing
                 1f at SecondLineHeadDuration + SecondLineHeadDelay
             }
-        )
+        ), label = "secondLineHead"
     )
     val secondLineTail by infiniteTransition.animateFloat(
         0f,
@@ -89,7 +98,7 @@ fun RoundedLinearProgressIndicator(
                 0f at SecondLineTailDelay with SecondLineTailEasing
                 1f at SecondLineTailDuration + SecondLineTailDelay
             }
-        )
+        ), label = "secondLineTail"
     )
     Canvas(
         modifier
