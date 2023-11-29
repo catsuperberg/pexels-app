@@ -84,7 +84,16 @@ class DetailsViewModel @Inject constructor(
     }
 
     fun onDownload() {
-        photo.value?.let { viewModelScope.launch { downloader.download(it.url) } }
+        photo.value?.let {
+            viewModelScope.launch {
+                downloader.download(it.url)
+                    .onSuccess { _snackBarMessage.emit(StringResource(R.string.image_download_finished)) }
+                    .onFailure {
+                        Log.e(this::class.simpleName, "Couldn't download image: $it")
+                        _snackBarMessage.emit(StringResource(R.string.image_download_failed))
+                    }
+            }
+        }
     }
 
     fun onBookmarkedChange() {

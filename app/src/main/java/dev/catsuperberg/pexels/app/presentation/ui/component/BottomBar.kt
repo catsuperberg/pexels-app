@@ -35,7 +35,6 @@ import androidx.navigation.NavController
 import dev.catsuperberg.pexels.app.presentation.navigation.BottomBarDestination
 import dev.catsuperberg.pexels.app.presentation.navigation.DestinationIcon
 import dev.catsuperberg.pexels.app.presentation.ui.appCurrentDestinationAsState
-import dev.catsuperberg.pexels.app.presentation.ui.destinations.BookmarksScreenDestination
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.Destination
 import dev.catsuperberg.pexels.app.presentation.ui.extension.shadow
 import dev.catsuperberg.pexels.app.presentation.ui.theme.extendedColors

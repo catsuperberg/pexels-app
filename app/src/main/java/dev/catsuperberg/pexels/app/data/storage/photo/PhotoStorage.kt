@@ -31,7 +31,8 @@ class PhotoStorage @Inject constructor(private val context: Context) : IPhotoSto
             if (appDir.exists().not())
                 appDir.mkdirs()
 
-            val picture = URL(downloadUrl).readBytes()
+            val localFile = File(downloadUrl)
+            val picture = if (localFile.exists()) localFile.readBytes() else URL(downloadUrl).readBytes()
             val file = File(appDir, fileName())
             file.writeBytes(picture)
             Result.success(Unit)

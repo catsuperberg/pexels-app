@@ -12,6 +12,8 @@
     <string name="api_photo_download_error">Failed to get photo information from server</string>
     <string name="database_photo_download_error">Failed to restore saved photo information</string>
     <string name="image_loader_photo_download_error">Failed loading image file</string>
+    <string name="image_download_finished">Image downloaded</string>
+    <string name="image_download_failed">Failed to download image</string>
     <string name="image_not_found">Image not found</string>
     <string name="data_from_cache">Network call failed. Items on display are loaded from cache</string>
     <string name="network_request_failed">Network request failed</string>
