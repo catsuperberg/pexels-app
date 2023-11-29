@@ -1,6 +1,6 @@
 package dev.catsuperberg.pexels.app.data.model
 
-import dev.catsuperberg.pexels.app.data.bookmark.photo.BookmarkedEntity
+import dev.catsuperberg.pexels.app.data.database.PhotoEntity
 import dev.catsuperberg.pexels.app.data.repository.photo.Media
 import dev.catsuperberg.pexels.app.data.repository.photo.PhotoDTO
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
@@ -22,7 +22,7 @@ class PhotoMapper @Inject constructor()  : IPhotoMapper {
             else -> null
         }
 
-    override fun map(entity: BookmarkedEntity): PexelsPhoto = PexelsPhoto(
+    override fun map(entity: PhotoEntity): PexelsPhoto = PexelsPhoto(
         id = entity.id,
         width = entity.width,
         height = entity.height,
@@ -36,8 +36,10 @@ class PhotoMapper @Inject constructor()  : IPhotoMapper {
         photo: PexelsPhoto,
         localUriOriginal: String,
         localUriOptimized: String,
-        timeAdded: Long
-    ): BookmarkedEntity = BookmarkedEntity(
+        bookmarked: Boolean,
+        cached: Boolean,
+        timeAdded: Long,
+    ): PhotoEntity = PhotoEntity(
         id = photo.id,
         width = photo.width,
         height = photo.height,
@@ -45,6 +47,8 @@ class PhotoMapper @Inject constructor()  : IPhotoMapper {
         localUriOriginal = localUriOriginal,
         localUriOptimized = localUriOptimized,
         alt = photo.alt,
+        bookmarked = bookmarked,
+        cached = cached,
         timeAdded = timeAdded
     )
 }

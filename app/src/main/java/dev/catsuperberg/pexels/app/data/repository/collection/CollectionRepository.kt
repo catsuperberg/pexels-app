@@ -68,7 +68,7 @@ class CollectionRepository @Inject constructor(
 
     private fun throwNoSuccessful(requestResults: List<Response<CollectionRequestDTO>>) {
         val firstFailed = requestResults.firstOrNull { it.isSuccessful.not() }
-        val errorMessage = firstFailed?.let { "Error: ${it.errorBody()?.string()}." }
+        val errorMessage = firstFailed?.let { "Error: ${ it.errorBody()?.string()}." }
         throw FailedRequestException("No request by ${this::class.java.name} was successful. $errorMessage")
     }
 }

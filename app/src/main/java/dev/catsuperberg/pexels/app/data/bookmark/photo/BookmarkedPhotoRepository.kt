@@ -32,7 +32,15 @@ class BookmarkedPhotoRepository @Inject constructor(
                     val now = DateTime.now(DateTimeZone.UTC).millis
                     val localUriOriginal = storage.save(photo.urlOriginalSize)
                     val localUriOptimized = storage.save(photo.urlOptimizedSize)
-                    bookmarkedDao.insertAll(mapper.map(photo, localUriOriginal, localUriOptimized, now))
+                    bookmarkedDao.insertAll(
+                        mapper.map(
+                            photo = photo,
+                            localUriOriginal = localUriOriginal,
+                            localUriOptimized = localUriOptimized,
+                            bookmarked = true,
+                            timeAdded = now,
+                        )
+                    )
                     Result.success(Unit)
                 },
                 onFailure = { e -> throw e }

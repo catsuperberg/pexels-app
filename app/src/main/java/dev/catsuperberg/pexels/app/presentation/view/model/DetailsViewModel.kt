@@ -121,9 +121,7 @@ class DetailsViewModel @Inject constructor(
         _snackBarMessage.emit(StringResource(R.string.bookmark_error))
     }
 
-
     private fun exploreCommand(): NavigatorCommand = { navigator ->
         navigator.popBackStack(HomeScreenDestination.route, false)
     }
-
 }

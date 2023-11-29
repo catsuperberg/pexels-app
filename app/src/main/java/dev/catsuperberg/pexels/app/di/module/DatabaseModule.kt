@@ -7,9 +7,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import dev.catsuperberg.pexels.app.data.ApplicationDatabase
 import dev.catsuperberg.pexels.app.data.bookmark.photo.BookmarkedDao
 import dev.catsuperberg.pexels.app.data.caching.collection.CollectionDao
+import dev.catsuperberg.pexels.app.data.database.ApplicationDatabase
 import javax.inject.Singleton
 
 @Module
