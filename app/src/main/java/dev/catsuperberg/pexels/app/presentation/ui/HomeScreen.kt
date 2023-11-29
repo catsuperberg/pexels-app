@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridS
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -46,7 +45,7 @@ import dev.catsuperberg.pexels.app.presentation.view.model.HomeViewModel
 fun HomeScreen(
     modifier: Modifier = Modifier,
     navigator: DestinationsNavigator,
-    screenReady: MutableState<Boolean>,
+    onScreenReady: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val photos = viewModel.photos.collectAsState()
@@ -59,9 +58,7 @@ fun HomeScreen(
     PaginationEffects(listState, viewModel.pageRequestAvailable.collectAsState(), viewModel::onRequestMorePhotos)
     LaunchedEffect(true) { viewModel.requestSource.collect { listState.scrollToItem(0) } }
     LaunchedEffect(true) { viewModel.navigationEvent.collect { command -> command(navigator)} }
-    LaunchedEffect(true) {
-        viewModel.loading.collect { if (!it && screenReady.value.not()) screenReady.value = true }
-    }
+    LaunchedEffect(true) { viewModel.loading.collect { onScreenReady() } }
 
     SnackbarScaffold(messageFlow = viewModel.snackBarMessage) { _ ->
         Column(modifier = modifier.fillMaxSize()) {
