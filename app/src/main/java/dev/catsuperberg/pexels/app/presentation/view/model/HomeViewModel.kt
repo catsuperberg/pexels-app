@@ -13,6 +13,7 @@ import dev.catsuperberg.pexels.app.presentation.ui.destinations.DetailsScreenDes
 import dev.catsuperberg.pexels.app.presentation.view.model.model.IPhotoMapper
 import dev.catsuperberg.pexels.app.presentation.view.model.model.Photo
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -21,12 +22,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val collectionProvider: ICollectionProvider,
@@ -34,7 +37,7 @@ class HomeViewModel @Inject constructor(
     private val photoMapper: IPhotoMapper
 ) : ViewModel() {
     enum class RequestSource { CURATED, COLLECTION, SEARCH }
-    
+
     private val _navigationEvent: MutableSharedFlow<NavigatorCommand> = MutableSharedFlow()
     val navigationEvent: SharedFlow<NavigatorCommand> = _navigationEvent.asSharedFlow()
 
@@ -79,6 +82,7 @@ class HomeViewModel @Inject constructor(
         onRequestMorePhotos()
 
         viewModelScope.launch { requestCollections() }
+        viewModelScope.launch { _searchPrompt.debounce(700).collect { committedSearch.value = it } }
         viewModelScope.launch { requestSource.collect(::updatePagination) }
     }
 
