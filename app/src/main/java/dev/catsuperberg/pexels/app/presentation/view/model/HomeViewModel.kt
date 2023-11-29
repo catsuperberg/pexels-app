@@ -7,7 +7,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.catsuperberg.pexels.app.R
 import dev.catsuperberg.pexels.app.data.caching.photo.CachedPhotoRepositoryImpl
 import dev.catsuperberg.pexels.app.data.helper.DataSource
-import dev.catsuperberg.pexels.app.data.helper.SourcedContainer
 import dev.catsuperberg.pexels.app.data.repository.photo.IPhotoRepository
 import dev.catsuperberg.pexels.app.domain.model.PexelsCollection
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto

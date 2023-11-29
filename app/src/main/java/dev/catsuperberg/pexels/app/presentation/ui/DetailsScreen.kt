@@ -1,7 +1,12 @@
 package dev.catsuperberg.pexels.app.presentation.ui
 
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -24,9 +29,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -95,6 +109,7 @@ fun DetailsScreen(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun DetailsPhotoCard(
     modifier: Modifier = Modifier,
@@ -105,22 +120,65 @@ private fun DetailsPhotoCard(
     roundedCornerShape: RoundedCornerShape,
     description: String? = null,
 ) {
-    Box(
-        contentAlignment = Alignment.TopCenter,
+    val scale = remember { mutableFloatStateOf(1f) }
+    val offset = remember { mutableStateOf(Offset.Zero) }
+    val cornersModifier = remember {
+        derivedStateOf { if (scale.floatValue == 1f) Modifier.clip(roundedCornerShape) else Modifier }
+    }
+
+    BoxWithConstraints(
         modifier = modifier
-            .padding(start = 24.dp, end = 24.dp, bottom = 12.dp)
-            .fillMaxWidth()
+            .clip(roundedCornerShape)
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitFirstDown()
+                    do { val event: PointerEvent = awaitPointerEvent() } while (event.changes.any { it.pressed } )
+                    
+                    // ACTION_UP after waiting fo pressed event to stop
+                    offset.value = Offset.Zero
+                    scale.floatValue = 1f
+                }
+            }
     ) {
-        SubcomposeAsyncImage(
-            model = url,
-            onSuccess = { onFinished() },
-            onError = { onError() },
-            contentDescription = description ?: stringResource(R.string.default_photo_description),
-            contentScale = ContentScale.FillWidth,
+        val state = rememberTransformableState { zoomChange, panChange, _ ->
+            scale.floatValue = (scale.floatValue * zoomChange).coerceIn(1f, 5f)
+
+            val extraWidth = (scale.floatValue - 1) * constraints.maxWidth
+            val extraHeight = (scale.floatValue - 1) * constraints.maxHeight
+            val maxY = extraWidth / 2
+            val maxX = extraHeight / 2
+
+            offset.value = Offset(
+                x = (offset.value.x + scale.floatValue * panChange.x).coerceIn(-maxX, maxX),
+                y = (offset.value.y + scale.floatValue * panChange.y).coerceIn(-maxY, maxY)
+            )
+        }
+
+        Box(
+            contentAlignment = Alignment.TopCenter,
             modifier = Modifier
-                .clip(roundedCornerShape)
-                .aspectRatio(aspectRation)
-        )
+                .padding(start = 24.dp, end = 24.dp, bottom = 12.dp)
+                .fillMaxWidth()
+                .graphicsLayer {
+                    scaleX = scale.floatValue
+                    scaleY = scale.floatValue
+                    translationX = offset.value.x
+                    translationY = offset.value.y
+                }
+                .transformable(state)
+        ) {
+
+            SubcomposeAsyncImage(
+                model = url,
+                onSuccess = { onFinished() },
+                onError = { onError() },
+                contentDescription = description ?: stringResource(R.string.default_photo_description),
+                contentScale = ContentScale.FillWidth,
+                modifier = cornersModifier.value
+                    .aspectRatio(aspectRation)
+            )
+        }
+
     }
 }
 
