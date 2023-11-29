@@ -17,16 +17,22 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import dev.catsuperberg.pexels.app.R
 import dev.catsuperberg.pexels.app.presentation.helper.PaginationEffects
+import dev.catsuperberg.pexels.app.presentation.ui.component.ExploreStub
 import dev.catsuperberg.pexels.app.presentation.ui.component.FeaturedCollections
+import dev.catsuperberg.pexels.app.presentation.ui.component.NetworkStub
 import dev.catsuperberg.pexels.app.presentation.ui.component.PhotoCard
 import dev.catsuperberg.pexels.app.presentation.ui.component.RoundedLinearProgressIndicator
 import dev.catsuperberg.pexels.app.presentation.ui.component.SearchBar
@@ -44,7 +50,10 @@ fun HomeScreen(
 ) {
     val photos = viewModel.photos.collectAsState()
     val loading = viewModel.loading.collectAsState()
+    val networkError = viewModel.networkError.collectAsState()
     val listState = rememberLazyStaggeredGridState()
+
+    val empty = remember { derivedStateOf { photos.value.isEmpty() } }
 
     PaginationEffects(listState, viewModel.pageRequestAvailable.collectAsState(), viewModel::onRequestMorePhotos)
     LaunchedEffect(true) { viewModel.requestSource.collect { listState.scrollToItem(0) } }
@@ -55,6 +64,14 @@ fun HomeScreen(
 
     Column(modifier = modifier.fillMaxSize()) {
         HomeScreenHeader(loading = loading, viewModel = viewModel)
+
+        if (empty.value) {
+            if (networkError.value)
+                NetworkStub(Modifier.fillMaxSize(), viewModel::onRetry)
+            else if (loading.value.not())
+                ExploreStub(Modifier.fillMaxSize(), stringResource(R.string.no_results_found), viewModel::onExplore)
+            return
+        }
 
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),

@@ -8,6 +8,7 @@ import dev.catsuperberg.pexels.app.domain.model.PexelsCollection
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
 import dev.catsuperberg.pexels.app.domain.usecase.ICollectionProvider
 import dev.catsuperberg.pexels.app.domain.usecase.IPhotoProvider
+import dev.catsuperberg.pexels.app.presentation.exception.PaginationException.BusyException
 import dev.catsuperberg.pexels.app.presentation.helper.Pagination
 import dev.catsuperberg.pexels.app.presentation.navigation.NavigatorCommand
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.DetailsScreenDestination
@@ -75,6 +76,8 @@ class HomeViewModel @Inject constructor(
                 return@combine RequestSource.SEARCH
             return@combine RequestSource.CURATED
         }.shareIn(viewModelScope, SharingStarted.Eagerly, 0)
+    private val requestSourceState: StateFlow<RequestSource> = requestSource
+        .stateIn(viewModelScope, SharingStarted.Eagerly, RequestSource.CURATED)
 
     private val pagination = Pagination(
         scope = viewModelScope,
@@ -87,6 +90,9 @@ class HomeViewModel @Inject constructor(
     val loading: StateFlow<Boolean> = pagination.requestActive.combine(collectionRequestActive) { paginationActive, collectionActive ->
             paginationActive || collectionActive
         }.stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    private val _networkError: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val networkError: StateFlow<Boolean> = _networkError.asStateFlow()
 
     init {
         onRequestMorePhotos()
@@ -149,8 +155,27 @@ class HomeViewModel @Inject constructor(
     fun onRequestMorePhotos() {
         viewModelScope.launch {
             pagination.requestNextPage()
-                .onFailure { Log.e(this::class.toString(), it.toString()) }
+                .onSuccess { _networkError.value = false }
+                .onFailure {
+                    Log.e(this::class.toString(), it.toString())
+                    when (it) {
+                        is BusyException -> { }
+                        else -> _networkError.value = true
+                    }
+                }
         }
+    }
+
+    fun onExplore() {
+        _searchPrompt.value = ""
+        committedSearch.value = ""
+        _collection.value = null
+        committedCollection.value = null
+    }
+
+    fun onRetry() {
+        _networkError.value = false
+        updatePagination(requestSourceState.value)
     }
 
     private fun highlightSelectionByTitle(title: String) {
