@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dev.catsuperberg.pexels.app.data.bookmark.photo.BookmarkedDao
 import dev.catsuperberg.pexels.app.data.caching.collection.CollectionDao
+import dev.catsuperberg.pexels.app.data.caching.photo.PhotoDao
 import dev.catsuperberg.pexels.app.data.database.ApplicationDatabase
 import javax.inject.Singleton
 
@@ -31,4 +32,8 @@ object DatabaseModule {
     @Singleton
     @Provides
     fun providesBookmarkDao(db: ApplicationDatabase): BookmarkedDao = db.bookmarkedDao()
+
+    @Singleton
+    @Provides
+    fun providesPhotoDao(db: ApplicationDatabase): PhotoDao = db.photoDao()
 }

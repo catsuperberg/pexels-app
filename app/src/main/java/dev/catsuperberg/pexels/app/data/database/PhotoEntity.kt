@@ -2,6 +2,7 @@ package dev.catsuperberg.pexels.app.data.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import dev.catsuperberg.pexels.app.data.caching.photo.PhotoSource
 
 @Entity("photo")
 data class PhotoEntity(
@@ -13,6 +14,6 @@ data class PhotoEntity(
     val localUriOptimized: String,
     val alt: String?,
     val bookmarked: Boolean,
-    val cached: Boolean,
+    val cacheSource: PhotoSource?,
     val timeAdded: Long,
 )

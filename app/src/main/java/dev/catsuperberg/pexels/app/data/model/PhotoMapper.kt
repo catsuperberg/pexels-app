@@ -1,5 +1,6 @@
 package dev.catsuperberg.pexels.app.data.model
 
+import dev.catsuperberg.pexels.app.data.caching.photo.PhotoSource
 import dev.catsuperberg.pexels.app.data.database.PhotoEntity
 import dev.catsuperberg.pexels.app.data.repository.photo.Media
 import dev.catsuperberg.pexels.app.data.repository.photo.PhotoDTO
@@ -37,7 +38,7 @@ class PhotoMapper @Inject constructor()  : IPhotoMapper {
         localUriOriginal: String,
         localUriOptimized: String,
         bookmarked: Boolean,
-        cached: Boolean,
+        cacheSource: PhotoSource?,
         timeAdded: Long,
     ): PhotoEntity = PhotoEntity(
         id = photo.id,
@@ -48,7 +49,7 @@ class PhotoMapper @Inject constructor()  : IPhotoMapper {
         localUriOptimized = localUriOptimized,
         alt = photo.alt,
         bookmarked = bookmarked,
-        cached = cached,
+        cacheSource = cacheSource,
         timeAdded = timeAdded
     )
 }

@@ -1,5 +1,6 @@
 package dev.catsuperberg.pexels.app.data.model
 
+import dev.catsuperberg.pexels.app.data.caching.photo.PhotoSource
 import dev.catsuperberg.pexels.app.data.database.PhotoEntity
 import dev.catsuperberg.pexels.app.data.repository.photo.Media
 import dev.catsuperberg.pexels.app.data.repository.photo.PhotoDTO
@@ -14,7 +15,7 @@ interface IPhotoMapper {
         localUriOriginal: String,
         localUriOptimized: String,
         bookmarked: Boolean = false,
-        cached: Boolean = false,
+        cacheSource: PhotoSource? = null,
         timeAdded: Long
     ): PhotoEntity
 }

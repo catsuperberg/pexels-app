@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "da94ec2b055ec6633b03540f42cf039d",
+    "identityHash": "7c9d89e6a98e7ea238c5e911acbf17b0",
     "entities": [
       {
         "tableName": "collection",
@@ -38,7 +38,7 @@
       },
       {
         "tableName": "photo",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `width` INTEGER NOT NULL, `height` INTEGER NOT NULL, `photographer` TEXT NOT NULL, `localUriOriginal` TEXT NOT NULL, `localUriOptimized` TEXT NOT NULL, `alt` TEXT, `bookmarked` INTEGER NOT NULL, `cached` INTEGER NOT NULL, `timeAdded` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `width` INTEGER NOT NULL, `height` INTEGER NOT NULL, `photographer` TEXT NOT NULL, `localUriOriginal` TEXT NOT NULL, `localUriOptimized` TEXT NOT NULL, `alt` TEXT, `bookmarked` INTEGER NOT NULL, `cacheSource` TEXT, `timeAdded` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -89,10 +89,10 @@
             "notNull": true
           },
           {
-            "fieldPath": "cached",
-            "columnName": "cached",
-            "affinity": "INTEGER",
-            "notNull": true
+            "fieldPath": "cacheSource",
+            "columnName": "cacheSource",
+            "affinity": "TEXT",
+            "notNull": false
           },
           {
             "fieldPath": "timeAdded",
@@ -114,7 +114,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'da94ec2b055ec6633b03540f42cf039d')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7c9d89e6a98e7ea238c5e911acbf17b0')"
     ]
   }
 }
