@@ -25,6 +25,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -51,10 +53,14 @@ class HomeViewModel @Inject constructor(
     val photos: StateFlow<List<Photo>> = _photos.map { list -> list.map(photoMapper::map)}
         .stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
 
-    private val _searchPrompt: MutableStateFlow<String> = MutableStateFlow("")
-    val searchPrompt: StateFlow<String> = _searchPrompt.asStateFlow()
     private val _collection: MutableStateFlow<Int?> = MutableStateFlow(null)
     val collection: StateFlow<Int?> = _collection.asStateFlow()
+
+    private val _collectionTitle: SharedFlow<String> = collection.mapNotNull { it?.let { _collections.value.getOrNull(it)?.title } }
+        .shareIn(viewModelScope, SharingStarted.Eagerly, 0)
+    private val _searchPrompt: MutableStateFlow<String> = MutableStateFlow("")
+    val searchPrompt: StateFlow<String> = listOf(_searchPrompt, _collectionTitle).merge()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, _searchPrompt.value)
 
     private val collectionCount = 7
     private var collectionRequestActive: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -63,8 +69,6 @@ class HomeViewModel @Inject constructor(
     private val committedCollection: MutableStateFlow<Int?> = MutableStateFlow(_collection.value)
     val requestSource: SharedFlow<RequestSource> =
         committedCollection.combine(committedSearch) { collection, search ->
-            Log.e("Collection", "Colletion: $collection, Search: $search")
-
             if (collection != null)
                 return@combine RequestSource.COLLECTION
             if (search.isNotEmpty())
@@ -88,6 +92,7 @@ class HomeViewModel @Inject constructor(
         onRequestMorePhotos()
 
         viewModelScope.launch { requestCollections() }
+        viewModelScope.launch { _collectionTitle.collect {  } }
         viewModelScope.launch { _searchPrompt.debounce(700).collect { onSearch() } }
         viewModelScope.launch { requestSource.collect(::updatePagination) }
     }
@@ -121,14 +126,14 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onSearch() {
+        _searchPrompt.value = searchPrompt.value
         committedSearch.value = searchPrompt.value
-        committedCollection.value = null
         highlightSelectionByTitle(committedSearch.value)
     }
 
     fun onClearSearch() {
         _searchPrompt.value = ""
-        committedSearch.value = searchPrompt.value
+        onSearch()
     }
 
     fun onCollectionSelected(index: Int) {
@@ -149,8 +154,13 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun highlightSelectionByTitle(title: String) {
-        _collection.value = _collections.value.indexOfFirst { it.title == title }
+        _collection.value = collectionWithSameName(title)
+        committedCollection.value = null
     }
+
+    private fun collectionWithSameName(title: String) = _collections.value
+        .firstOrNull { it.title.equals(title, ignoreCase = true) }
+        ?.let { _collections.value.indexOf(it) }
 
     private fun detailsScreenCommand(photoId: Int): NavigatorCommand = { navigator ->
         navigator.navigate(DetailsScreenDestination(DetailsScreenNavArgs(photoId = photoId)))
