@@ -49,10 +49,8 @@ fun BookmarksScreen(
     Column(modifier = modifier.fillMaxSize()) {
         TextHeader(loading = loading, headerText = stringResource(R.string.bookmarks))
 
-        if (empty.value) {
-            ExploreStub(Modifier.fillMaxSize(), stringResource(R.string.no_saved_images), viewModel::onExplore)
-            return
-        }
+        if (empty.value)
+            return ExploreStub(Modifier.fillMaxSize(), stringResource(R.string.no_saved_images), viewModel::onExplore)
 
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),

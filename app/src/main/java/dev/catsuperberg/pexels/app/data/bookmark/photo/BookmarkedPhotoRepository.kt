@@ -3,6 +3,8 @@ package dev.catsuperberg.pexels.app.data.bookmark.photo
 import dev.catsuperberg.pexels.app.data.exception.DatabaseException.FailedDatabaseDeleteException
 import dev.catsuperberg.pexels.app.data.exception.DatabaseException.FailedDatabaseInsertException
 import dev.catsuperberg.pexels.app.data.exception.DatabaseException.FailedDatabaseRequestException
+import dev.catsuperberg.pexels.app.data.helper.DataSource
+import dev.catsuperberg.pexels.app.data.helper.SourcedContainer
 import dev.catsuperberg.pexels.app.data.model.IPhotoMapper
 import dev.catsuperberg.pexels.app.data.repository.photo.ISinglePhotoRepository
 import dev.catsuperberg.pexels.app.data.storage.photo.IPhotoStorage
@@ -20,15 +22,17 @@ class BookmarkedPhotoRepository @Inject constructor(
     private val storage: IPhotoStorage
 ): IBookmarkedPhotoRepository {
     override suspend fun isBookmarked(id: Int): Result<Boolean> = accessDb { bookmarkedDao.isBookmarked(id) }
+        .map { it.data }
 
     override suspend fun getBookmarked(page: Int, perPage: Int): Result<List<PexelsPhoto>> = accessDb {
         bookmarkedDao.getPage(page, perPage).map(mapper::map)
-    }
+    }.map { it.data }
 
     override suspend fun saveBookmarked(id: Int): Result<Unit> = withContext(Dispatchers.IO) {
         try {
              repository.getPhoto(id).fold(
-                onSuccess = { photo ->
+                onSuccess = { photoContainer ->
+                    val photo = photoContainer.data
                     val now = DateTime.now(DateTimeZone.UTC).millis
                     val localUriOriginal = storage.save(photo.urlOriginalSize)
                     val localUriOptimized = storage.save(photo.urlOptimizedSize)
@@ -62,13 +66,15 @@ class BookmarkedPhotoRepository @Inject constructor(
         }
     }
 
-    override suspend fun getPhoto(id: Int): Result<PexelsPhoto> = accessDb { mapper.map(bookmarkedDao.findById(id)) }
+    override suspend fun getPhoto(id: Int): Result<SourcedContainer<PexelsPhoto, DataSource>> =
+        accessDb { mapper.map(bookmarkedDao.findById(id)) }
 
-    private suspend fun <T> accessDb(action: () -> T): Result<T> = withContext(Dispatchers.IO) {
-        try {
-            Result.success(action())
-        } catch (e: Exception) {
-            Result.failure(FailedDatabaseRequestException(e.toString()))
+    private suspend fun <T> accessDb(action: () -> T): Result<SourcedContainer<T, DataSource>> =
+        withContext(Dispatchers.IO) {
+            try {
+                Result.success(SourcedContainer(action(), DataSource.DATABASE))
+            } catch (e: Exception) {
+                Result.failure(FailedDatabaseRequestException(e.toString()))
+            }
         }
-    }
 }

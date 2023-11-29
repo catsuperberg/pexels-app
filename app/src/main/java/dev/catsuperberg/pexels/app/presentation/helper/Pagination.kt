@@ -10,11 +10,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
-class Pagination<T, U: Collection<T>>(
+class Pagination<T>(
     scope: CoroutineScope,
     private val pageSize: Int,
-    private var itemRequest: suspend (Int, Int) -> Result<U>,
-    private val onReceive: (items: U) -> Unit,
+    private var itemRequest: suspend (Int, Int) -> Result<T>,
+    private val isResultEmpty: (T) -> Boolean,
+    private val onReceive: (items: T) -> Unit,
     private val onClear: () -> Unit = {}
 ) {
     private val _requestActive: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -26,7 +27,7 @@ class Pagination<T, U: Collection<T>>(
 
     private var pagesLoaded = 0
 
-    fun reset(request: (suspend (Int, Int) -> Result<U>)? = null) {
+    fun reset(request: (suspend (Int, Int) -> Result<T>)? = null) {
         request?.also { itemRequest = it }
         pagesLoaded = 0
         _requestActive.value = false
@@ -34,7 +35,7 @@ class Pagination<T, U: Collection<T>>(
         onClear()
     }
 
-    suspend fun requestNextPage(): Result<U> {
+    suspend fun requestNextPage(): Result<T> {
         Log.d("Pagination", "Requesting more photos")
         if (_requestActive.value)
             return Result.failure(BusyException("There is already active pagination page request"))
@@ -42,7 +43,7 @@ class Pagination<T, U: Collection<T>>(
         _requestActive.value = true
         val result = itemRequest(pagesLoaded + 1, pageSize)
             .onSuccess { items ->
-                if (items.isEmpty()) {
+                if (isResultEmpty(items)) {
                     Log.d("Pagination", "Empty page")
                     reachedEmptyPage.value = true
                     return@onSuccess

@@ -4,19 +4,24 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.catsuperberg.pexels.app.R
 import dev.catsuperberg.pexels.app.data.caching.photo.CachedPhotoRepositoryImpl
+import dev.catsuperberg.pexels.app.data.helper.DataSource
+import dev.catsuperberg.pexels.app.data.helper.SourcedContainer
 import dev.catsuperberg.pexels.app.data.repository.photo.IPhotoRepository
 import dev.catsuperberg.pexels.app.domain.model.PexelsCollection
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
 import dev.catsuperberg.pexels.app.domain.usecase.ICollectionProvider
 import dev.catsuperberg.pexels.app.presentation.exception.PaginationException.BusyException
 import dev.catsuperberg.pexels.app.presentation.helper.Pagination
+import dev.catsuperberg.pexels.app.presentation.helper.UiText
 import dev.catsuperberg.pexels.app.presentation.navigation.NavigatorCommand
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.DetailsScreenDestination
 import dev.catsuperberg.pexels.app.presentation.view.model.model.IPhotoMapper
 import dev.catsuperberg.pexels.app.presentation.view.model.model.Photo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -42,7 +47,7 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
     enum class RequestSource { CURATED, COLLECTION, SEARCH }
 
-    private val defaultPhotoRequest: (suspend (Int, Int) -> Result<List<PexelsPhoto>>) =
+    private val defaultPhotoRequest: (suspend (Int, Int) -> Result<SourcedContainer<List<PexelsPhoto>, DataSource>>) =
         { page, perPage -> photoRepository.getCurated(page, perPage) }
 
     private val _navigationEvent: MutableSharedFlow<NavigatorCommand> = MutableSharedFlow()
@@ -77,7 +82,8 @@ class HomeViewModel @Inject constructor(
         scope = viewModelScope,
         pageSize = 30,
         itemRequest = getRequestAction(RequestSource.CURATED),
-        onReceive = { photos -> _photos.value = (_photos.value + photos).distinctBy { it.id } },
+        onReceive = { photos -> _photos.value = (_photos.value + photos.data).distinctBy { it.id } },
+        isResultEmpty = { container -> container.data.isEmpty() },
         onClear = { _photos.value = listOf() }
     )
     val pageRequestAvailable: StateFlow<Boolean> = pagination.requestAvailable
@@ -88,6 +94,13 @@ class HomeViewModel @Inject constructor(
 
     private val _networkError: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val networkError: StateFlow<Boolean> = _networkError.asStateFlow()
+
+    private val _snackBarMessage: MutableSharedFlow<UiText.StringResource> = MutableSharedFlow(
+        replay = 1,
+        extraBufferCapacity = 3,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val snackBarMessage: SharedFlow<UiText.StringResource> = _snackBarMessage.asSharedFlow()
 
     init {
         onRequestMorePhotos()
@@ -128,12 +141,20 @@ class HomeViewModel @Inject constructor(
     fun onRequestMorePhotos() {
         viewModelScope.launch {
             pagination.requestNextPage()
-                .onSuccess { _networkError.value = false }
+                .onSuccess {
+                    _networkError.value = false
+                    if(it.source == DataSource.DATABASE)
+                        viewModelScope.launch { _snackBarMessage.emit(UiText.StringResource(R.string.data_from_cache)) }
+                }
                 .onFailure {
                     Log.e(this::class.toString(), it.toString())
                     when (it) {
                         is BusyException -> { }
-                        else -> _networkError.value = true
+                        else -> {
+                            if (_networkError.value.not())
+                                viewModelScope.launch { _snackBarMessage.emit(UiText.StringResource(R.string.network_request_failed)) }
+                            _networkError.value = true
+                        }
                     }
                 }
         }
@@ -145,6 +166,7 @@ class HomeViewModel @Inject constructor(
 
     fun onRetry() {
         _networkError.value = false
+        viewModelScope.launch { requestCollections() }
         updatePagination(requestSourceState.value)
     }
 
@@ -165,12 +187,15 @@ class HomeViewModel @Inject constructor(
         committedCollection.value = null
     }
 
-    private fun getSourceByPriority(collectionSelected: Boolean, searchPresent: Boolean): RequestSource =
-        if (collectionSelected) RequestSource.COLLECTION
-        else if (searchPresent) RequestSource.SEARCH
-        else RequestSource.CURATED
+    private fun getSourceByPriority(collectionSelected: Boolean, searchPresent: Boolean): RequestSource = when {
+        collectionSelected -> RequestSource.COLLECTION
+        searchPresent -> RequestSource.SEARCH
+        else -> RequestSource.CURATED
+    }
 
-    private fun getRequestAction(source: RequestSource): (suspend (Int, Int) -> Result<List<PexelsPhoto>>) {
+    private fun getRequestAction(
+        source: RequestSource
+    ): (suspend (Int, Int) -> Result<SourcedContainer<List<PexelsPhoto>, DataSource>>) {
         return when (source) {
             RequestSource.COLLECTION -> {
                 val id = committedCollection.value?.let { _collections.value[it].id} ?: return defaultPhotoRequest

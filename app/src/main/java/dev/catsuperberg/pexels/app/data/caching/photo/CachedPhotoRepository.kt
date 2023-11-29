@@ -5,6 +5,8 @@ import dev.catsuperberg.pexels.app.data.caching.CacheConst
 import dev.catsuperberg.pexels.app.data.database.PhotoEntity
 import dev.catsuperberg.pexels.app.data.exception.DatabaseException.EmptyDatabaseResponseException
 import dev.catsuperberg.pexels.app.data.exception.DatabaseException.FailedDatabaseRequestException
+import dev.catsuperberg.pexels.app.data.helper.DataSource
+import dev.catsuperberg.pexels.app.data.helper.SourcedContainer
 import dev.catsuperberg.pexels.app.data.model.IPhotoMapper
 import dev.catsuperberg.pexels.app.data.repository.photo.IPhotoRepository
 import dev.catsuperberg.pexels.app.data.storage.photo.IPhotoStorage
@@ -30,34 +32,35 @@ class CachedPhotoRepository @Inject constructor(
     private val scope = CoroutineScope(Dispatchers.IO)
     private val cacheLimit = 50
 
-    override suspend fun getCurated(page: Int, perPage: Int): Result<List<PexelsPhoto>> = withContext(Dispatchers.IO) {
-        val result = repository.getCurated(page, perPage)
-        if (sourcesToCache.contains(PhotoSource.CURATED).not())
-            return@withContext result
-        result.fold(
-            onSuccess = {
-                launch { addDbPhotos(it, PhotoSource.CURATED) }
-                result
-            },
-            onFailure = { getFromDb(page, perPage, PhotoSource.CURATED) }
-        )
-    }
+    override suspend fun getCurated(page: Int, perPage: Int): Result<SourcedContainer<List<PexelsPhoto>, DataSource>> =
+        withContext(Dispatchers.IO) {
+            val result = repository.getCurated(page, perPage)
+            if (sourcesToCache.contains(PhotoSource.CURATED).not())
+                return@withContext result
+            result.fold(
+                onSuccess = {
+                    launch { addDbPhotos(it.data, PhotoSource.CURATED) }
+                    result
+                },
+                onFailure = { getFromDb(page, perPage, PhotoSource.CURATED) }
+            )
+        }
 
-    override suspend fun getCollection(id: String, page: Int, perPage: Int): Result<List<PexelsPhoto>> =
+    override suspend fun getCollection(id: String, page: Int, perPage: Int): Result<SourcedContainer<List<PexelsPhoto>, DataSource>> =
         withContext(Dispatchers.IO) {
             if (sourcesToCache.contains(PhotoSource.COLLECTION))
                 throw NotImplementedError("Caching for ${PhotoSource.COLLECTION.name} not implemented: isn't in task requirements")
             repository.getCollection(id, page, perPage)
         }
 
-    override suspend fun getSearch(query: String, page: Int, perPage: Int): Result<List<PexelsPhoto>> =
+    override suspend fun getSearch(query: String, page: Int, perPage: Int): Result<SourcedContainer<List<PexelsPhoto>, DataSource>> =
         withContext(Dispatchers.IO) {
             if (sourcesToCache.contains(PhotoSource.SEARCH))
                 throw NotImplementedError("Caching for ${PhotoSource.SEARCH.name} not implemented: isn't in task requirements")
             repository.getSearch(query, page, perPage)
         }
 
-    override suspend fun getPhoto(id: Int): Result<PexelsPhoto> = withContext(Dispatchers.IO) {
+    override suspend fun getPhoto(id: Int): Result<SourcedContainer<PexelsPhoto, DataSource>> = withContext(Dispatchers.IO) {
         if (sourcesToCache.contains(PhotoSource.ID))
             throw NotImplementedError("Caching for ${PhotoSource.ID.name} not implemented: isn't in task requirements")
         repository.getPhoto(id)
@@ -85,13 +88,13 @@ class CachedPhotoRepository @Inject constructor(
         }
     }
 
-    private fun getFromDb(page: Int, perPage: Int, source: PhotoSource): Result<List<PexelsPhoto>> {
+    private fun getFromDb(page: Int, perPage: Int, source: PhotoSource): Result<SourcedContainer<List<PexelsPhoto>, DataSource>> {
         return try {
             val entities = clearExpired(photoDao.getPage(page, perPage, source))
             if (entities.isNotEmpty())
-                Result.success(entities.map(mapper::map))
+                Result.success(SourcedContainer(entities.map(mapper::map), DataSource.DATABASE))
             else
-                Result.failure( EmptyDatabaseResponseException("No entries found for $source", null))
+                Result.failure(EmptyDatabaseResponseException("No entries found for $source", null))
         } catch (e: Exception) {
             Result.failure(FailedDatabaseRequestException("Unexpected exception on database read", e))
         }

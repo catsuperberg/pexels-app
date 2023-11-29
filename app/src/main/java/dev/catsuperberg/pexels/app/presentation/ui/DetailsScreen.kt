@@ -67,6 +67,13 @@ fun DetailsScreen(
         ) {
             UpButtonHeader(headerText = photo.value?.author ?: "", loading = loading) { navigator.popBackStack() }
 
+            if (loading.value.not() && photo.value == null)
+                return@SnackbarScaffold ExploreStub(
+                    Modifier.fillMaxSize(),
+                    stringResource(R.string.image_not_found),
+                    viewModel::onExplore
+                )
+
             photo.value?.also {
                 DetailsPhotoCard(
                     url = it.url,
@@ -83,11 +90,7 @@ fun DetailsScreen(
                     onDownload = viewModel::onDownload,
                     onBookmarkedChange = viewModel::onBookmarkedChange
                 )
-            } ?: if (loading.value.not()) ExploreStub(
-                Modifier.fillMaxSize(),
-                stringResource(R.string.image_not_found),
-                viewModel::onExplore
-            ) else {}
+            }
         }
     }
 }

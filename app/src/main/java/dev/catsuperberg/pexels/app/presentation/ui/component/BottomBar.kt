@@ -35,6 +35,7 @@ import androidx.navigation.NavController
 import dev.catsuperberg.pexels.app.presentation.navigation.BottomBarDestination
 import dev.catsuperberg.pexels.app.presentation.navigation.DestinationIcon
 import dev.catsuperberg.pexels.app.presentation.ui.appCurrentDestinationAsState
+import dev.catsuperberg.pexels.app.presentation.ui.destinations.BookmarksScreenDestination
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.Destination
 import dev.catsuperberg.pexels.app.presentation.ui.extension.shadow
 import dev.catsuperberg.pexels.app.presentation.ui.theme.extendedColors
@@ -71,9 +72,9 @@ fun BottomBar(
                 val isCurrentDestination = currentDestination.value?.let { it == destination.direction } ?: false
                 val onClick: () -> Unit = {
                     if (destinationInBackStack)
-                        navController.popBackStack(destination.direction.route, inclusive = false, saveState = true)
+                        navController.popBackStack(destination.direction.route, inclusive = false )
                     else
-                        navController.navigate(destination.direction.route) { restoreState = true }
+                        navController.navigate(destination.direction.route)
                 }
 
                 Button(

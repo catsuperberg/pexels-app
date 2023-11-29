@@ -36,6 +36,7 @@ import dev.catsuperberg.pexels.app.presentation.ui.component.NetworkStub
 import dev.catsuperberg.pexels.app.presentation.ui.component.PhotoCard
 import dev.catsuperberg.pexels.app.presentation.ui.component.RoundedLinearProgressIndicator
 import dev.catsuperberg.pexels.app.presentation.ui.component.SearchBar
+import dev.catsuperberg.pexels.app.presentation.ui.component.SnackbarScaffold
 import dev.catsuperberg.pexels.app.presentation.ui.transition.FromLeftHorizontalTransition
 import dev.catsuperberg.pexels.app.presentation.view.model.HomeViewModel
 
@@ -62,34 +63,36 @@ fun HomeScreen(
         viewModel.loading.collect { if (!it && screenReady.value.not()) screenReady.value = true }
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        HomeScreenHeader(loading = loading, viewModel = viewModel)
+    SnackbarScaffold(messageFlow = viewModel.snackBarMessage) { _ ->
+        Column(modifier = modifier.fillMaxSize()) {
+            HomeScreenHeader(loading = loading, viewModel = viewModel)
 
-        if (empty.value) {
-            if (networkError.value)
-                NetworkStub(Modifier.fillMaxSize(), viewModel::onRetry)
-            else if (loading.value.not())
-                ExploreStub(Modifier.fillMaxSize(), stringResource(R.string.no_results_found), viewModel::onExplore)
-            return
-        }
+            if (empty.value) {
+                if (networkError.value)
+                    NetworkStub(Modifier.fillMaxSize(), viewModel::onRetry)
+                else if (loading.value.not())
+                    ExploreStub(Modifier.fillMaxSize(), stringResource(R.string.no_results_found), viewModel::onExplore)
+                return@SnackbarScaffold
+            }
 
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(2),
-            state = listState,
-            verticalItemSpacing = 12.dp,
-            horizontalArrangement = Arrangement.spacedBy(17.dp),
-            modifier = Modifier.padding(horizontal = 24.dp)
-        ) {
-            items(photos.value.count()) {
-                val photo = photos.value[it]
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Fixed(2),
+                state = listState,
+                verticalItemSpacing = 12.dp,
+                horizontalArrangement = Arrangement.spacedBy(17.dp),
+                modifier = Modifier.padding(horizontal = 24.dp)
+            ) {
+                items(photos.value.count()) {
+                    val photo = photos.value[it]
 
-                PhotoCard(
-                    url = photo.url,
-                    aspectRation = photo.aspectRatio,
-                    description = photo.description,
-                    onClick = { viewModel.onDetails(it) },
-                    modifier = Modifier.clip(RoundedCornerShape(20.dp))
-                )
+                    PhotoCard(
+                        url = photo.url,
+                        aspectRation = photo.aspectRatio,
+                        description = photo.description,
+                        onClick = { viewModel.onDetails(it) },
+                        modifier = Modifier.clip(RoundedCornerShape(20.dp))
+                    )
+                }
             }
         }
     }

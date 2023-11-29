@@ -66,7 +66,7 @@ class DetailsViewModel @Inject constructor(
         _loading.value = true
         viewModelScope.launch {
             photoProvider.getPhoto(photoId)
-                .onSuccess { value -> _photo.value = value }
+                .onSuccess { value -> _photo.value = value.data }
                 .onFailure {
                     _loading.value = false
                     _photoNotFound.value = true

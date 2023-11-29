@@ -39,6 +39,7 @@ class BookmarksViewModel @Inject constructor(
         scope = viewModelScope,
         pageSize = 30,
         itemRequest = { page, perPage -> photoProvider.getPhotos(page, perPage) },
+        isResultEmpty = { photos -> photos.isEmpty()},
         onReceive = { photos -> _photos.value = (_photos.value + photos).distinctBy { it.id } }
     )
 

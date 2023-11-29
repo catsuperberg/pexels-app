@@ -13,6 +13,8 @@
     <string name="database_photo_download_error">Failed to restore saved photo information</string>
     <string name="image_loader_photo_download_error">Failed loading image file</string>
     <string name="image_not_found">Image not found</string>
+    <string name="data_from_cache">Network call failed. Items on display are loaded from cache</string>
+    <string name="network_request_failed">Network request failed</string>
     <string name="home_button">home button</string>
     <string name="bookmarks_button">bookmarks button</string>
     <string name="no_saved_images">You haven\'t saved anything yet</string>
