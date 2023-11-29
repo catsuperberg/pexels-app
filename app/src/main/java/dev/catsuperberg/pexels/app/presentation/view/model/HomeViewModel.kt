@@ -47,9 +47,6 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
     enum class RequestSource { CURATED, COLLECTION, SEARCH }
 
-    private val defaultPhotoRequest: (suspend (Int, Int) -> Result<SourcedContainer<List<PexelsPhoto>, DataSource>>) =
-        { page, perPage -> photoRepository.getCurated(page, perPage) }
-
     private val _navigationEvent: MutableSharedFlow<NavigatorCommand> = MutableSharedFlow()
     val navigationEvent: SharedFlow<NavigatorCommand> = _navigationEvent.asSharedFlow()
 
@@ -193,17 +190,16 @@ class HomeViewModel @Inject constructor(
         else -> RequestSource.CURATED
     }
 
-    private fun getRequestAction(
-        source: RequestSource
-    ): (suspend (Int, Int) -> Result<SourcedContainer<List<PexelsPhoto>, DataSource>>) {
-        return when (source) {
-            RequestSource.COLLECTION -> {
-                val id = committedCollection.value?.let { _collections.value[it].id} ?: return defaultPhotoRequest
-                { page, perPage -> photoRepository.getCollection(id, page, perPage) }
-            }
-            RequestSource.SEARCH -> { page, perPage -> photoRepository.getSearch(committedSearch.value, page, perPage) }
-            RequestSource.CURATED -> defaultPhotoRequest
+    private suspend fun defaultPhotoRequest(page: Int, perPage: Int) = photoRepository.getCurated(page, perPage)
+
+    private fun getRequestAction(source: RequestSource) = when (source) {
+        RequestSource.COLLECTION -> {
+            committedCollection.value?.let {
+                { page, perPage -> photoRepository.getCollection(_collections.value[it].id, page, perPage) }
+            } ?: ::defaultPhotoRequest
         }
+        RequestSource.SEARCH -> { page, perPage -> photoRepository.getSearch(committedSearch.value, page, perPage) }
+        RequestSource.CURATED -> ::defaultPhotoRequest
     }
 
     private fun findCollectionByTitle(title: String) = _collections.value
