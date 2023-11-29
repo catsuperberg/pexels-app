@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search">Поиск</string>
+    <string name="search_input_field">Поле поиска</string>
+    <string name="download">Скачать</string>
+    <string name="default_photo_description">Фото</string>
+    <string name="bookmark">Закладка</string>
+    <string name="bookmarks">Закладки</string>
+    <string name="explore">К открытиям</string>
+    <string name="bookmark_error">Не удалось обновить закладку</string>
+    <string name="generic_photo_download_error">Не удалось получить изображение</string>
+    <string name="api_photo_download_error">Не удалось получить с сервера данные фотографии</string>
+    <string name="database_photo_download_error">Не удалось получить из хранилища данные фотографии</string>
+    <string name="image_loader_photo_download_error">Не удалось загрузить файл изображения</string>
+    <string name="image_download_finished">Изображение скачано</string>
+    <string name="image_download_failed">Не удалось скачать изображение</string>
+    <string name="image_not_found">Изображение не найдено</string>
+    <string name="data_from_cache">Неудачный сетевой запрос. Информация на дисплее из кэша</string>
+    <string name="network_request_failed">Неудачный сетевой запрос</string>
+    <string name="home_button">кнопка домой</string>
+    <string name="bookmarks_button">кнопка закладок</string>
+    <string name="no_saved_images">Вы ещё ничего не сохраняли</string>
+    <string name="clear_search_field">Очистить поле поиска</string>
+    <string name="no_results_found">Результатов не найдено</string>
+    <string name="try_again">Попробуйте ещё</string>
+</resources>

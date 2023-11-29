@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Pexels App</string>
+    <string name="app_name" translatable="false">Pexels App</string>
     <string name="search">Search</string>
     <string name="search_input_field">Search input field</string>
     <string name="download">Download</string>
@@ -8,7 +8,7 @@
     <string name="bookmarks">Bookmarks</string>
     <string name="explore">Explore</string>
     <string name="bookmark_error">Failed to updated bookmark</string>
-    <string name="generic_photo_download_error">Couldn\'t download the image</string>
+    <string name="generic_photo_download_error">Couldn\'t retrieve the image</string>
     <string name="api_photo_download_error">Failed to get photo information from server</string>
     <string name="database_photo_download_error">Failed to restore saved photo information</string>
     <string name="image_loader_photo_download_error">Failed loading image file</string>
