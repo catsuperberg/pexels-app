@@ -62,7 +62,7 @@ class BookmarksViewModel @Inject constructor(
     fun onRequestMorePhotos() {
         viewModelScope.launch {
             pagination.requestNextPage()
-                .onFailure { Log.e(this::class.toString(), it.toString()) }
+                .onFailure { Log.e(this::class.simpleName, it.toString()) }
         }
     }
 

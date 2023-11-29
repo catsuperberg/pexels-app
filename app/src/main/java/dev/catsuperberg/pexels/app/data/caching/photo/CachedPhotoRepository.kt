@@ -84,7 +84,7 @@ class CachedPhotoRepository @Inject constructor(
             }
             photoDao.insertAll(*entities.toTypedArray())
         } catch (e: Exception) {
-            Log.e(this::class.toString(), "Failed updating photo cache db: $e")
+            Log.e(this::class.simpleName, "Failed updating photo cache db: $e")
         }
     }
 

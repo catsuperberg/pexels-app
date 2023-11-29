@@ -70,7 +70,7 @@ class DetailsViewModel @Inject constructor(
                 .onFailure {
                     _loading.value = false
                     _photoNotFound.value = true
-                    Log.e(this::class.toString(), "Failed retrieving photo data. Cause: $it")
+                    Log.e(this::class.simpleName, "Failed retrieving photo data. Cause: $it")
                     when(it) {
                         is ApiException -> _snackBarMessage.emit(StringResource(R.string.api_photo_download_error))
                         is DatabaseException -> _snackBarMessage.emit(StringResource(R.string.database_photo_download_error))
@@ -89,9 +89,11 @@ class DetailsViewModel @Inject constructor(
 
     fun onBookmarkedChange() {
         viewModelScope.launch {
-            bookmarkAccess.setBookmarked(photoId, !_bookmarked.value)
-                .onSuccess { refreshBookmarked() }
+            val valueToSet = !_bookmarked.value
+            _bookmarked.value = valueToSet
+            bookmarkAccess.setBookmarked(photoId, valueToSet)
                 .onFailure { displayBookmarkError(it) }
+            refreshBookmarked()
         }
     }
 
@@ -102,7 +104,7 @@ class DetailsViewModel @Inject constructor(
     fun onImageLoadFailed() {
         _loading.value = false
         _photoNotFound.value = true
-        Log.e(this::class.toString(), "Image loader couldn't download an image from ${photo.value?.url}")
+        Log.e(this::class.simpleName, "Image loader couldn't download an image from ${photo.value?.url}")
         viewModelScope.launch { _snackBarMessage.emit(StringResource(R.string.image_loader_photo_download_error)) }
     }
 
@@ -111,13 +113,14 @@ class DetailsViewModel @Inject constructor(
     }
 
     private suspend fun refreshBookmarked() {
+        Log.d(this::class.simpleName, "Bookmark refresh")
         bookmarkAccess.isBookmarked(photoId)
             .onSuccess { value -> _bookmarked.value = value }
             .onFailure { displayBookmarkError(it) }
     }
 
     private suspend fun displayBookmarkError(e: Throwable) {
-        Log.e(this::class.toString(), "Failed to update bookmark state. Cause: $e")
+        Log.e(this::class.simpleName, "Failed to update bookmark state. Cause: $e")
         _snackBarMessage.emit(StringResource(R.string.bookmark_error))
     }
 

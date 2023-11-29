@@ -113,7 +113,7 @@ class HomeViewModel @Inject constructor(
         collectionRequestActive.value = true
         collectionProvider.get(collectionCount)
             .onSuccess { values -> _collections.value = values }
-            .onFailure { Log.e(this::class.toString(), it.toString()) }
+            .onFailure { Log.e(this::class.simpleName, it.toString()) }
         collectionRequestActive.value = false
     }
 
@@ -147,7 +147,7 @@ class HomeViewModel @Inject constructor(
                         viewModelScope.launch { _snackBarMessage.emit(UiText.StringResource(R.string.data_from_cache)) }
                 }
                 .onFailure {
-                    Log.e(this::class.toString(), it.toString())
+                    Log.e(this::class.simpleName, it.toString())
                     when (it) {
                         is BusyException -> { }
                         else -> {
