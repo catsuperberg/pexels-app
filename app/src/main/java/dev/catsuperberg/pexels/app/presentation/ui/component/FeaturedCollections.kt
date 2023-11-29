@@ -24,7 +24,7 @@ fun FeaturedCollections(
     viewModel: HomeViewModel
 ) {
     val collections = viewModel.collections.collectAsState()
-    val selected = viewModel.selectedCollection.collectAsState()
+    val selected = viewModel.collection.collectAsState()
 
     val present = remember { derivedStateOf { collections.value.isNotEmpty() } }
 
@@ -38,13 +38,13 @@ fun FeaturedCollections(
         ) {
             items(collections.value.count()) { index ->
                 Button(
-                    enabled = selected.value != index,
                     onClick = { viewModel.onCollectionSelected(index) },
-                    colors = ButtonDefaults.buttonColors(
+                    colors = if (selected.value == index) ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ) else ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surface,
                         contentColor = MaterialTheme.colorScheme.onSurface,
-                        disabledContainerColor = MaterialTheme.colorScheme.primary,
-                        disabledContentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
                     Text(collections.value[index])

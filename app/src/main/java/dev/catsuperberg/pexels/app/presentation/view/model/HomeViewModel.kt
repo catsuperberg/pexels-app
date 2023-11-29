@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.catsuperberg.pexels.app.domain.model.PexelsCollection
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
 import dev.catsuperberg.pexels.app.domain.usecase.ICollectionProvider
 import dev.catsuperberg.pexels.app.domain.usecase.IPhotoProvider
@@ -37,34 +38,39 @@ class HomeViewModel @Inject constructor(
     private val photoMapper: IPhotoMapper
 ) : ViewModel() {
     enum class RequestSource { CURATED, COLLECTION, SEARCH }
+    private val defaultPhotoRequest: (suspend (Int, Int) -> Result<List<PexelsPhoto>>) =
+        { page, perPage -> photoProvider.getCurated(page, perPage) }
 
     private val _navigationEvent: MutableSharedFlow<NavigatorCommand> = MutableSharedFlow()
     val navigationEvent: SharedFlow<NavigatorCommand> = _navigationEvent.asSharedFlow()
 
-    private val _collections: MutableStateFlow<List<String>> = MutableStateFlow(listOf())
-    val collections: StateFlow<List<String>> = _collections.asStateFlow()
+    private val _collections: MutableStateFlow<List<PexelsCollection>> = MutableStateFlow(listOf())
+    val collections: StateFlow<List<String>> = _collections.map { list -> list.map { it.title } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
     private val _photos: MutableStateFlow<List<PexelsPhoto>> = MutableStateFlow(listOf())
     val photos: StateFlow<List<Photo>> = _photos.map { list -> list.map(photoMapper::map)}
         .stateIn(viewModelScope, SharingStarted.Eagerly, listOf())
 
     private val _searchPrompt: MutableStateFlow<String> = MutableStateFlow("")
     val searchPrompt: StateFlow<String> = _searchPrompt.asStateFlow()
-    private val _selectedCollection: MutableStateFlow<Int?> = MutableStateFlow(null)
-    val selectedCollection: StateFlow<Int?> = _selectedCollection.asStateFlow()
+    private val _collection: MutableStateFlow<Int?> = MutableStateFlow(null)
+    val collection: StateFlow<Int?> = _collection.asStateFlow()
 
     private val collectionCount = 7
     private var collectionRequestActive: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     private val committedSearch: MutableStateFlow<String> = MutableStateFlow(_searchPrompt.value)
-    private val committedSelectedCollection: MutableStateFlow<Int?> = MutableStateFlow(_selectedCollection.value)
+    private val committedCollection: MutableStateFlow<Int?> = MutableStateFlow(_collection.value)
     val requestSource: SharedFlow<RequestSource> =
-        committedSelectedCollection.combine(committedSearch) { collection, search ->
+        committedCollection.combine(committedSearch) { collection, search ->
+            Log.e("Collection", "Colletion: $collection, Search: $search")
+
             if (collection != null)
                 return@combine RequestSource.COLLECTION
             if (search.isNotEmpty())
                 return@combine RequestSource.SEARCH
             return@combine RequestSource.CURATED
-        }.shareIn(viewModelScope, SharingStarted.Eagerly, 1)
+        }.shareIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     private val pagination = Pagination(
         scope = viewModelScope,
@@ -82,14 +88,14 @@ class HomeViewModel @Inject constructor(
         onRequestMorePhotos()
 
         viewModelScope.launch { requestCollections() }
-        viewModelScope.launch { _searchPrompt.debounce(700).collect { committedSearch.value = it } }
+        viewModelScope.launch { _searchPrompt.debounce(700).collect { onSearch() } }
         viewModelScope.launch { requestSource.collect(::updatePagination) }
     }
 
     private suspend fun CoroutineScope.requestCollections() {
         collectionRequestActive.value = true
         collectionProvider.get(collectionCount)
-            .onSuccess { values -> _collections.value = values.map { it.title } }
+            .onSuccess { values -> _collections.value = values }
             .onFailure { Log.e(this::class.toString(), it.toString()) }
         collectionRequestActive.value = false
     }
@@ -101,8 +107,12 @@ class HomeViewModel @Inject constructor(
 
     private fun getRequestAction(source: RequestSource): (suspend (Int, Int) -> Result<List<PexelsPhoto>>) {
         return when (source) {
+            RequestSource.COLLECTION -> {
+                val id = committedCollection.value?.let { _collections.value[it].id} ?: return defaultPhotoRequest
+                { page, perPage -> photoProvider.getCollection(id, page, perPage) }
+            }
             RequestSource.SEARCH -> { page, perPage -> photoProvider.getSearch(committedSearch.value, page, perPage) }
-            else -> { page, perPage -> photoProvider.getCurated(page, perPage) }
+            RequestSource.CURATED -> defaultPhotoRequest
         }
     }
 
@@ -112,6 +122,8 @@ class HomeViewModel @Inject constructor(
 
     fun onSearch() {
         committedSearch.value = searchPrompt.value
+        committedCollection.value = null
+        highlightSelectionByTitle(committedSearch.value)
     }
 
     fun onClearSearch() {
@@ -120,7 +132,8 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onCollectionSelected(index: Int) {
-        _selectedCollection.value = index
+        _collection.value = index
+        committedCollection.value = _collection.value
     }
 
     fun onDetails(id: Int) {
@@ -133,6 +146,10 @@ class HomeViewModel @Inject constructor(
             pagination.requestNextPage()
                 .onFailure { Log.e(this::class.toString(), it.toString()) }
         }
+    }
+
+    private fun highlightSelectionByTitle(title: String) {
+        _collection.value = _collections.value.indexOfFirst { it.title == title }
     }
 
     private fun detailsScreenCommand(photoId: Int): NavigatorCommand = { navigator ->
