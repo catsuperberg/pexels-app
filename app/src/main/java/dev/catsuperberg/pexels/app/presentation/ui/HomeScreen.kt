@@ -17,7 +17,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +47,7 @@ fun HomeScreen(
     val listState = rememberLazyStaggeredGridState()
 
     PaginationEffects(listState, viewModel.pageRequestAvailable.collectAsState(), viewModel::onRequestMorePhotos)
+    LaunchedEffect(true) { viewModel.requestSource.collect { listState.scrollToItem(0) } }
     LaunchedEffect(true) { viewModel.navigationEvent.collect { command -> command(navigator)} }
     LaunchedEffect(true) {
         viewModel.loading.collect { if (!it && screenReady.value.not()) screenReady.value = true }
@@ -86,7 +86,10 @@ private fun HomeScreenHeader(modifier: Modifier = Modifier, loading: State<Boole
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = modifier.padding(vertical = 12.dp)
         ) {
-            SearchBar(modifier = Modifier.padding(vertical = 12.dp, horizontal = horizontalPadding))
+            SearchBar(
+                viewModel = viewModel,
+                modifier = Modifier.padding(vertical = 12.dp, horizontal = horizontalPadding)
+            )
             FeaturedCollections(contentPadding = PaddingValues(horizontal = horizontalPadding),viewModel = viewModel)
         }
         if (loading.value)

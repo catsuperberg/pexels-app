@@ -83,7 +83,11 @@ fun DetailsScreen(
                     onDownload = viewModel::onDownload,
                     onBookmarkedChange = viewModel::onBookmarkedChange
                 )
-            } ?: ExploreStub(Modifier.fillMaxSize(), stringResource(R.string.image_not_found), viewModel::onExplore)
+            } ?: if (loading.value.not()) ExploreStub(
+                Modifier.fillMaxSize(),
+                stringResource(R.string.image_not_found),
+                viewModel::onExplore
+            ) else {}
         }
     }
 }

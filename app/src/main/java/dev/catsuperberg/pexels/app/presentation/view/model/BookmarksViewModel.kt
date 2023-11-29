@@ -39,7 +39,7 @@ class BookmarksViewModel @Inject constructor(
         scope = viewModelScope,
         pageSize = 30,
         itemRequest = { page, perPage -> photoProvider.getPhotos(page, perPage) },
-        appendAction = { photos -> _photos.value = (_photos.value + photos).distinctBy {it.id } }
+        onReceive = { photos -> _photos.value = (_photos.value + photos).distinctBy {it.id } }
     )
 
     val pageRequestAvailable: StateFlow<Boolean> = pagination.requestAvailable

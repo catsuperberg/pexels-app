@@ -13,12 +13,12 @@ class PhotoProvider @Inject constructor(
         return repository.getCurated(page, perPage)
     }
 
-    override suspend fun getSearch(query: String, count: Int): Result<List<PexelsPhoto>> {
-        return repository.getSearch(query, 1, count)
+    override suspend fun getSearch(query: String, page: Int, perPage: Int): Result<List<PexelsPhoto>> {
+        return repository.getSearch(query, page, perPage)
     }
 
-    override suspend fun getCollection(id: String, count: Int): Result<List<PexelsPhoto>> {
-        return repository.getCollection(id, 1, count)
+    override suspend fun getCollection(id: String, page: Int, perPage: Int): Result<List<PexelsPhoto>> {
+        return repository.getCollection(id, page, perPage)
     }
 }
 

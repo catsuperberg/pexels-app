@@ -13,8 +13,9 @@ import kotlinx.coroutines.flow.stateIn
 class Pagination<T, U: Collection<T>>(
     scope: CoroutineScope,
     private val pageSize: Int,
-    private val itemRequest: suspend (Int, Int) -> Result<U>,
-    private val appendAction: (items: U) -> Unit
+    private var itemRequest: suspend (Int, Int) -> Result<U>,
+    private val onReceive: (items: U) -> Unit,
+    private val onClear: () -> Unit = {}
 ) {
     private val _requestActive: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val reachedEmptyPage: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -24,6 +25,14 @@ class Pagination<T, U: Collection<T>>(
     }.stateIn(scope, SharingStarted.Eagerly, true)
 
     private var pagesLoaded = 0
+
+    fun reset(request: (suspend (Int, Int) -> Result<U>)? = null) {
+        request?.also { itemRequest = it }
+        pagesLoaded = 0
+        _requestActive.value = false
+        reachedEmptyPage.value = false
+        onClear()
+    }
 
     suspend fun requestNextPage(): Result<U> {
         Log.d("Pagination", "Requesting more photos")
@@ -39,7 +48,7 @@ class Pagination<T, U: Collection<T>>(
                     return@onSuccess
                 }
 
-                appendAction(items)
+                onReceive(items)
                 reachedEmptyPage.value = false
                 pagesLoaded++
                 Log.d("Pagination", "Added page")
