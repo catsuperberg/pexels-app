@@ -7,10 +7,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.catsuperberg.pexels.app.R
 import dev.catsuperberg.pexels.app.data.caching.photo.CachedPhotoRepositoryImpl
 import dev.catsuperberg.pexels.app.data.helper.DataSource
+import dev.catsuperberg.pexels.app.data.repository.collection.ICollectionRepository
 import dev.catsuperberg.pexels.app.data.repository.photo.IPhotoRepository
 import dev.catsuperberg.pexels.app.domain.model.PexelsCollection
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
-import dev.catsuperberg.pexels.app.domain.usecase.ICollectionProvider
 import dev.catsuperberg.pexels.app.presentation.exception.PaginationException.BusyException
 import dev.catsuperberg.pexels.app.presentation.helper.Pagination
 import dev.catsuperberg.pexels.app.presentation.helper.UiText
@@ -40,7 +40,7 @@ import javax.inject.Inject
 @OptIn(FlowPreview::class)
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val collectionProvider: ICollectionProvider,
+    private val collectionRepository: ICollectionRepository,
     @CachedPhotoRepositoryImpl private val photoRepository: IPhotoRepository,
     private val photoMapper: IPhotoMapper
 ) : ViewModel() {
@@ -108,7 +108,7 @@ class HomeViewModel @Inject constructor(
 
     private suspend fun CoroutineScope.requestCollections() {
         collectionRequestActive.value = true
-        collectionProvider.get(collectionCount)
+        collectionRepository.getFeatured(collectionCount)
             .onSuccess { values -> _collections.value = values }
             .onFailure { Log.e(this::class.simpleName, it.toString()) }
         collectionRequestActive.value = false

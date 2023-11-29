@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.catsuperberg.pexels.app.data.bookmark.photo.IBookmarkedPhotoRepository
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
-import dev.catsuperberg.pexels.app.domain.usecase.IBookmarkedPhotoProvider
 import dev.catsuperberg.pexels.app.presentation.helper.Pagination
 import dev.catsuperberg.pexels.app.presentation.navigation.NavigatorCommand
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.DetailsScreenDestination
@@ -25,7 +25,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BookmarksViewModel @Inject constructor(
-    private val photoProvider: IBookmarkedPhotoProvider,
+    private val photoRepository: IBookmarkedPhotoRepository,
     private val photoMapper: IPhotoMapper
 ): ViewModel() {
     private val _navigationEvent: MutableSharedFlow<NavigatorCommand> = MutableSharedFlow()
@@ -38,7 +38,7 @@ class BookmarksViewModel @Inject constructor(
     private val pagination = Pagination(
         scope = viewModelScope,
         pageSize = 30,
-        itemRequest = { page, perPage -> photoProvider.getPhotos(page, perPage) },
+        itemRequest = { page, perPage -> photoRepository.getBookmarked(page, perPage) },
         isResultEmpty = { photos -> photos.isEmpty() },
         onReceive = { photos -> _photos.value = (_photos.value + photos).distinctBy { it.id } }
     )

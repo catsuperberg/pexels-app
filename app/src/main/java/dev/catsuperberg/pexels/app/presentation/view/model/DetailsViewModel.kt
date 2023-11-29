@@ -8,10 +8,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.catsuperberg.pexels.app.R
 import dev.catsuperberg.pexels.app.data.exception.ApiException
 import dev.catsuperberg.pexels.app.data.exception.DatabaseException
+import dev.catsuperberg.pexels.app.data.repository.photo.ISinglePhotoRepository
 import dev.catsuperberg.pexels.app.domain.model.PexelsPhoto
 import dev.catsuperberg.pexels.app.domain.usecase.IBookmarkAccess
 import dev.catsuperberg.pexels.app.domain.usecase.IPhotoDownloader
-import dev.catsuperberg.pexels.app.domain.usecase.ISinglePhotoProvider
 import dev.catsuperberg.pexels.app.presentation.helper.UiText.StringResource
 import dev.catsuperberg.pexels.app.presentation.navigation.NavigatorCommand
 import dev.catsuperberg.pexels.app.presentation.ui.destinations.HomeScreenDestination
@@ -39,7 +39,7 @@ data class DetailsScreenNavArgs(
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
     stateHandle: SavedStateHandle,
-    private val photoProvider: ISinglePhotoProvider,
+    private val photoRepository: ISinglePhotoRepository,
     private val photoMapper: IPhotoMapper,
     private val downloader: IPhotoDownloader,
     private val bookmarkAccess: IBookmarkAccess
@@ -65,7 +65,7 @@ class DetailsViewModel @Inject constructor(
     init {
         _loading.value = true
         viewModelScope.launch {
-            photoProvider.getPhoto(photoId)
+            photoRepository.getPhoto(photoId)
                 .onSuccess { value -> _photo.value = value.data }
                 .onFailure {
                     _loading.value = false
