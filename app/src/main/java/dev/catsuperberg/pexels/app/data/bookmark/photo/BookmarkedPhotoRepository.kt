@@ -21,8 +21,9 @@ class BookmarkedPhotoRepository @Inject constructor(
     private val mapper: IPhotoMapper,
     private val storage: IPhotoStorage
 ): IBookmarkedPhotoRepository {
-    override suspend fun isBookmarked(id: Int): Result<Boolean> = accessDb { bookmarkedDao.isBookmarked(id) }
-        .map { it.data }
+    override suspend fun isBookmarked(id: Int): Result<Boolean> = accessDb {
+        bookmarkedDao.isBookmarked(id)
+    }.map { it.data }
 
     override suspend fun getBookmarked(page: Int, perPage: Int): Result<List<PexelsPhoto>> = accessDb {
         bookmarkedDao.getPage(page, perPage).map(mapper::map)

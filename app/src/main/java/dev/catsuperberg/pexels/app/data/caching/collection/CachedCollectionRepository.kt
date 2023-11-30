@@ -39,7 +39,7 @@ class CachedCollectionRepository @Inject constructor(
             val entities = collections.map { mapper.map(it, now) }
             collectionDao.insertAll(*entities.toTypedArray())
         } catch (e: Exception) {
-            Log.e("Caching", "Failed updating collection db: $e")
+            Log.e(this::class.simpleName, "Failed updating collection db: $e")
         }
     }
 

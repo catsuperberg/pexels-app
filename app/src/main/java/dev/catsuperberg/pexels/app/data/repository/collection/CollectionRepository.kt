@@ -1,6 +1,5 @@
 package dev.catsuperberg.pexels.app.data.repository.collection
 
-import dev.catsuperberg.pexels.app.data.exception.ApiException
 import dev.catsuperberg.pexels.app.data.exception.ApiException.EmptyAnswerException
 import dev.catsuperberg.pexels.app.data.exception.ApiException.FailedRequestException
 import dev.catsuperberg.pexels.app.data.model.ICollectionMapper
@@ -9,9 +8,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.Response
 import retrofit2.Retrofit
-import java.net.ConnectException
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
 import javax.inject.Inject
 
 class CollectionRepository @Inject constructor(
@@ -27,13 +23,7 @@ class CollectionRepository @Inject constructor(
         try {
             Result.success(getCollections(count))
         } catch (e: Exception) {
-            when (e) {
-                is ApiException,
-                is SocketTimeoutException,
-                is UnknownHostException,
-                is ConnectException -> Result.failure(e)
-                else -> throw e
-            }
+            Result.failure(e)
         }
     }
 
