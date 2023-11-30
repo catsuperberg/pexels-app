@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.catsuperberg.pexels.app.R
 import dev.catsuperberg.pexels.app.data.caching.photo.CachedPhotoRepositoryImpl
 import dev.catsuperberg.pexels.app.data.helper.DataSource
+import dev.catsuperberg.pexels.app.data.helper.SourcedContainer
 import dev.catsuperberg.pexels.app.data.repository.collection.ICollectionRepository
 import dev.catsuperberg.pexels.app.data.repository.photo.IPhotoRepository
 import dev.catsuperberg.pexels.app.domain.model.PexelsCollection
@@ -190,7 +191,9 @@ class HomeViewModel @Inject constructor(
         else -> RequestSource.CURATED
     }
 
-    private suspend fun defaultPhotoRequest(page: Int, perPage: Int) = photoRepository.getCurated(page, perPage)
+    private suspend fun defaultPhotoRequest(page: Int, perPage: Int) =
+        if (page == 1) photoRepository.getCurated(page, perPage)
+        else Result.success(SourcedContainer(listOf(), DataSource.API))
 
     private fun getRequestAction(source: RequestSource) = when (source) {
         RequestSource.COLLECTION -> {
