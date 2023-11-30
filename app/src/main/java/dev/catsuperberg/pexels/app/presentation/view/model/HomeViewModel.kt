@@ -44,7 +44,7 @@ class HomeViewModel @Inject constructor(
     @CachedPhotoRepositoryImpl private val photoRepository: IPhotoRepository,
     private val photoMapper: IPhotoMapper
 ) : ViewModel() {
-    enum class RequestSource { CURATED, COLLECTION, SEARCH }
+    enum class RequestSource { CURATED, SEARCH }
 
     private val _navigationEvent: MutableSharedFlow<NavigatorCommand> = MutableSharedFlow()
     val navigationEvent: SharedFlow<NavigatorCommand> = _navigationEvent.asSharedFlow()
@@ -59,18 +59,17 @@ class HomeViewModel @Inject constructor(
     private val _collection: MutableStateFlow<Int?> = MutableStateFlow(null)
     val collection: StateFlow<Int?> = _collection.asStateFlow()
     private val _searchPrompt: MutableStateFlow<String> = MutableStateFlow("")
+    private val committedSearch: MutableStateFlow<String> = MutableStateFlow(_searchPrompt.value)
 
     private val collectionCount = 7
     private var collectionRequestActive: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    private val committedSearch: MutableStateFlow<String> = MutableStateFlow(_searchPrompt.value)
-    private val committedCollection: MutableStateFlow<Int?> = MutableStateFlow(_collection.value)
 
     val searchPrompt: StateFlow<String> = listOf(_searchPrompt, committedSearch).merge()
         .stateIn(viewModelScope, SharingStarted.Eagerly, _searchPrompt.value)
-    val requestSource: SharedFlow<RequestSource> = committedCollection.combine(committedSearch) { collection, search ->
-            getSourceByPriority(collection != null, search.isNotEmpty())
-        }.shareIn(viewModelScope, SharingStarted.Eagerly, 0)
+    val requestSource: SharedFlow<RequestSource> = committedSearch
+        .map { if (it.isNotEmpty()) RequestSource.SEARCH else RequestSource.CURATED}
+        .shareIn(viewModelScope, SharingStarted.Eagerly, 0)
     private val requestSourceState: StateFlow<RequestSource> =
         requestSource.stateIn(viewModelScope, SharingStarted.Eagerly, RequestSource.CURATED)
 
@@ -121,7 +120,6 @@ class HomeViewModel @Inject constructor(
     fun onSearch() {
         committedSearch.value = searchPrompt.value
         _collection.value = findCollectionByTitle(committedSearch.value)
-        committedCollection.value = null
     }
 
     fun onClearSearch() {
@@ -130,8 +128,8 @@ class HomeViewModel @Inject constructor(
 
     fun onCollectionSelected(index: Int) {
         _collection.value = index
-        committedCollection.value = index
         committedSearch.value = _collections.value[index].title
+        onSearch()
     }
 
 
@@ -181,25 +179,11 @@ class HomeViewModel @Inject constructor(
         _searchPrompt.value = ""
         committedSearch.value = ""
         _collection.value = null
-        committedCollection.value = null
     }
-
-    private fun getSourceByPriority(collectionSelected: Boolean, searchPresent: Boolean): RequestSource = when {
-        collectionSelected -> RequestSource.COLLECTION
-        searchPresent -> RequestSource.SEARCH
-        else -> RequestSource.CURATED
-    }
-
-    private suspend fun defaultPhotoRequest(page: Int, perPage: Int) = photoRepository.getCurated(page, perPage)
 
     private fun getRequestAction(source: RequestSource) = when (source) {
-        RequestSource.COLLECTION -> {
-            committedCollection.value?.let {
-                { page, perPage -> photoRepository.getCollection(_collections.value[it].id, page, perPage) }
-            } ?: ::defaultPhotoRequest
-        }
         RequestSource.SEARCH -> { page, perPage -> photoRepository.getSearch(committedSearch.value, page, perPage) }
-        RequestSource.CURATED -> ::defaultPhotoRequest
+        RequestSource.CURATED -> photoRepository::getCurated
     }
 
     private fun findCollectionByTitle(title: String) = _collections.value
