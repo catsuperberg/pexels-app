@@ -1,5 +1,6 @@
 package dev.catsuperberg.pexels.app.presentation.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.rememberTransformableState
@@ -18,8 +19,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -38,11 +41,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -76,7 +81,7 @@ fun DetailsScreen(
     SnackbarScaffold(messageFlow = viewModel.snackBarMessage) { _ ->
         Column(
             verticalArrangement = Arrangement.SpaceBetween,
-            modifier = modifier.fillMaxSize()
+            modifier = modifier.fillMaxWidth()
         ) {
             UpButtonHeader(headerText = photo.value?.author ?: "", loading = loading) { navigator.popBackStack() }
 
@@ -88,21 +93,23 @@ fun DetailsScreen(
                 )
 
             photo.value?.also {
-                DetailsPhotoCard(
-                    url = it.url,
-                    aspectRation = it.aspectRatio,
-                    description = it.description,
-                    onFinished = viewModel::onImageLoadFinished,
-                    onError = viewModel::onImageLoadFailed,
-                    roundedCornerShape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.weight(1f)
+                Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                    DetailsPhotoCard(
+                        url = it.url,
+                        aspectRation = it.aspectRatio,
+                        description = it.description,
+                        onFinished = viewModel::onImageLoadFinished,
+                        onError = viewModel::onImageLoadFailed,
+                        roundedCornerShape = RoundedCornerShape(16.dp),
+                        modifier = Modifier
 
-                )
-                DetailsButtons(
-                    bookmarked = bookmarked.value,
-                    onDownload = viewModel::onDownload,
-                    onBookmarkedChange = viewModel::onBookmarkedChange
-                )
+                    )
+                    DetailsButtons(
+                        bookmarked = bookmarked.value,
+                        onDownload = viewModel::onDownload,
+                        onBookmarkedChange = viewModel::onBookmarkedChange
+                    )
+                }
             }
         }
     }
